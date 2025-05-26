@@ -1,0 +1,512 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
+  color: #1a1a1a;
+  background-color: #f8f9ff;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+.mb-5 { margin-bottom: 2.5rem; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+.mt-5 { margin-top: 2.5rem; }
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* === Global Dark Mode Styles === */
+body.dark-mode {
+  background: #181c24 !important;
+  color: #f3f4f6;
+}
+body.dark-mode, body.dark-mode .app, body.dark-mode .sidebar-page, body.dark-mode .main-content {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
+  color: #f3f4f6 !important;
+}
+body.dark-mode .settings-page,
+body.dark-mode .payments-page,
+body.dark-mode .clients-page,
+body.dark-mode .dashboard-modern,
+body.dark-mode .main-content {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 2px 18px #10121a;
+}
+body.dark-mode .settings-title,
+body.dark-mode .settings-section h2,
+body.dark-mode .settings-field label,
+body.dark-mode .payments-header,
+body.dark-mode .payments-card-title {
+  color: #f3f4f6 !important;
+}
+body.dark-mode .settings-tabs,
+body.dark-mode .payments-tabs {
+  border-bottom: 2px solid #23263a !important;
+}
+body.dark-mode .settings-tab,
+body.dark-mode .payments-tab {
+  color: #bfc8f8 !important;
+  background: none !important;
+}
+body.dark-mode .settings-tab.active,
+body.dark-mode .payments-tab-active {
+  background: #23263a !important;
+  color: #6be1ff !important;
+  border-bottom: 2px solid #6be1ff !important;
+}
+body.dark-mode .settings-card,
+body.dark-mode .payments-card,
+body.dark-mode .feature-section,
+body.dark-mode .about-us-section {
+  background: #23263a !important;
+  box-shadow: 0 1px 6px #10121a !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .settings-input,
+body.dark-mode input,
+body.dark-mode textarea {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .settings-input:focus,
+body.dark-mode input:focus,
+body.dark-mode textarea:focus {
+  border-color: #6be1ff !important;
+}
+body.dark-mode .settings-btn,
+body.dark-mode button,
+body.dark-mode .payments-btn {
+  background: #6be1ff !important;
+  color: #181c24 !important;
+}
+body.dark-mode .settings-btn:hover,
+body.dark-mode button:hover,
+body.dark-mode .payments-btn:hover {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .settings-toggle-label {
+  color: #6be1ff !important;
+}
+body.dark-mode .switch .slider {
+  background-color: #23263a !important;
+}
+body.dark-mode .switch input:checked + .slider {
+  background-color: #6be1ff !important;
+}
+body.dark-mode .slider:before {
+  background-color: #23263a !important;
+}
+
+/* === Extended Dark Mode Styles === */
+body.dark-mode .navbar,
+body.dark-mode .navigation {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border-bottom: 1px solid #23263a !important;
+  box-shadow: 0 2px 18px #10121a !important;
+}
+body.dark-mode .navbar a,
+body.dark-mode .nav-links a,
+body.dark-mode .nav-logo {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .navbar a.active,
+body.dark-mode .nav-links a.active,
+body.dark-mode .navbar a:hover,
+body.dark-mode .nav-links a:hover {
+  background: #181c24 !important;
+  color: #6be1ff !important;
+}
+body.dark-mode .right-fixed-sidebar {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: -2px 0 16px #10121a !important;
+}
+body.dark-mode .sidebar-link {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .sidebar-link:hover, body.dark-mode .sidebar-list li.active .sidebar-link {
+  background: #181c24 !important;
+  color: #6be1ff !important;
+}
+body.dark-mode .sidebar-icon {
+  color: #6be1ff !important;
+}
+body.dark-mode .container,
+body.dark-mode .payments-table-card,
+body.dark-mode .payments-panel,
+body.dark-mode .payments-chart-card,
+body.dark-mode .feature-card,
+body.dark-mode .activity-section,
+body.dark-mode .messages-list,
+body.dark-mode .calendar-events,
+body.dark-mode .company-info,
+body.dark-mode .dashboard-modern,
+body.dark-mode .wa-chat-card {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 2px 18px #10121a !important;
+}
+body.dark-mode .payments-table,
+body.dark-mode .expanded-table {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .payments-table th,
+body.dark-mode .payments-table td,
+body.dark-mode .expanded-table th,
+body.dark-mode .expanded-table td {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border-color: #181c24 !important;
+}
+body.dark-mode .payments-status,
+body.dark-mode .payments-status-paid,
+body.dark-mode .payments-status-pending,
+body.dark-mode .payments-status-overdue {
+  color: #6be1ff !important;
+}
+body.dark-mode .payments-searchbar,
+body.dark-mode .payments-filter-btn {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .payments-btn {
+  background: #6be1ff !important;
+  color: #181c24 !important;
+}
+body.dark-mode .payments-btn:hover {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .payments-muted {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .feature-item {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border-left-color: #6be1ff !important;
+}
+body.dark-mode .company-feature .feature-item {
+  border-left-color: #22c55e !important;
+}
+body.dark-mode .user-feature .feature-item {
+  border-left-color: #fbbf24 !important;
+}
+body.dark-mode .about-us-section {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .wa-header,
+body.dark-mode .wa-input-row {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border-bottom: 1.5px solid #181c24 !important;
+  border-top: 1.5px solid #181c24 !important;
+}
+body.dark-mode .wa-bubble.me {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .wa-bubble.them {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .wa-input {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .wa-input:focus {
+  border-color: #6be1ff !important;
+}
+body.dark-mode .wa-send-btn {
+  background: #6be1ff !important;
+  color: #181c24 !important;
+}
+body.dark-mode .wa-send-btn:hover {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+
+/* === Universal Dark Mode Overrides === */
+body.dark-mode * {
+  /* Override any direct white backgrounds */
+  background-color: unset;
+}
+body.dark-mode [style*="background: #fff"],
+body.dark-mode [style*="background:#fff"],
+body.dark-mode [style*="background-color: #fff"],
+body.dark-mode [style*="background-color:#fff"] {
+  background: #23263a !important;
+  background-color: #23263a !important;
+  color: #f3f4f6 !important;
+}
+
+/* Common container classes for dark mode */
+body.dark-mode .profile-card,
+body.dark-mode .freelancer-profile-card,
+body.dark-mode .company-profile-card,
+body.dark-mode .user-profile-card,
+body.dark-mode .message-box,
+body.dark-mode .contact-box,
+body.dark-mode .card,
+body.dark-mode .modal,
+body.dark-mode .wa-chat-card,
+body.dark-mode .wa-header,
+body.dark-mode .wa-input-row,
+body.dark-mode .wa-bubble,
+body.dark-mode .booking-modal,
+body.dark-mode .rate-section,
+body.dark-mode .activity-section,
+body.dark-mode .calendar-events,
+body.dark-mode .messages-list,
+body.dark-mode .payments-table-card,
+body.dark-mode .payments-panel,
+body.dark-mode .payments-chart-card,
+body.dark-mode .feature-card,
+body.dark-mode .expanded-table,
+body.dark-mode .about-us-section,
+body.dark-mode .feature-section {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 2px 18px #10121a !important;
+  border-color: #6be1ff !important;
+  border-width: 1.5px !important;
+  border-style: solid !important;
+}
+body.dark-mode .wa-bubble.me {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .wa-bubble.them {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .modal,
+body.dark-mode .booking-modal {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .calendar-day {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border: 2px solid #181c24 !important;
+}
+body.dark-mode .calendar-day.selected {
+  background: linear-gradient(135deg, #2563eb 0%, #1877f2 100%) !important;
+  color: #fff !important;
+  border: 3px solid #2563eb !important;
+}
+
+/* === Messaging Page Dark Mode === */
+body.dark-mode .messages-list,
+body.dark-mode .message-sidebar,
+body.dark-mode .chat-sidebar,
+body.dark-mode .chat-area,
+body.dark-mode .message-content,
+body.dark-mode .message-box,
+body.dark-mode .wa-chat-card {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border-color: #6be1ff !important;
+}
+body.dark-mode .message-sidebar,
+body.dark-mode .chat-sidebar {
+  background: #181c24 !important;
+  color: #bfc8f8 !important;
+  border-right: 1.5px solid #23263a !important;
+}
+body.dark-mode .message-item,
+body.dark-mode .chat-contact,
+body.dark-mode .chat-contact.selected {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border-bottom: 1px solid #181c24 !important;
+}
+body.dark-mode .chat-contact.selected {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .wa-header,
+body.dark-mode .wa-input-row {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border-bottom: 1.5px solid #181c24 !important;
+  border-top: 1.5px solid #181c24 !important;
+}
+body.dark-mode .wa-chat-body {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .wa-bubble.me {
+  background: #2563eb !important;
+  color: #fff !important;
+  border-bottom-right-radius: 6px;
+}
+body.dark-mode .wa-bubble.them {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+  border-bottom-left-radius: 6px;
+}
+body.dark-mode .wa-input,
+body.dark-mode .wa-input-row input[type="text"],
+body.dark-mode .wa-input-row textarea {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .wa-input:focus,
+body.dark-mode .wa-input-row input[type="text"]:focus,
+body.dark-mode .wa-input-row textarea:focus {
+  border-color: #6be1ff !important;
+}
+body.dark-mode .wa-send-btn,
+body.dark-mode .wa-input-row button[type="submit"] {
+  background: #6be1ff !important;
+  color: #181c24 !important;
+}
+body.dark-mode .wa-send-btn:hover,
+body.dark-mode .wa-input-row button[type="submit"]:hover {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .wa-bubble-time {
+  color: #bfc8f8 !important;
+}
+
+/* === Force all MUI and native input backgrounds to white in light mode === */
+body:not(.dark-mode) .MuiInputBase-root,
+body:not(.dark-mode) .MuiInputBase-root input,
+body:not(.dark-mode) .MuiOutlinedInput-root,
+body:not(.dark-mode) .MuiOutlinedInput-root input,
+body:not(.dark-mode) .MuiInputBase-input,
+body:not(.dark-mode) .MuiOutlinedInput-input,
+body:not(.dark-mode) input[type="text"],
+body:not(.dark-mode) input[type="date"],
+body:not(.dark-mode) input[type="time"] {
+  background: #fff !important;
+  color: #222 !important;
+}
+
+/* Remove autofill blue/yellow background in Chrome/Safari in light mode */
+body:not(.dark-mode) input:-webkit-autofill,
+body:not(.dark-mode) input:-webkit-autofill:focus,
+body:not(.dark-mode) input:-webkit-autofill:hover,
+body:not(.dark-mode) input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  -webkit-text-fill-color: #222 !important;
+}
+

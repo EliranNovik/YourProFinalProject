@@ -1,0 +1,213 @@
+/* Contact hover effect for Messages sidebar */
+.contact-hovered {
+  background: #f1f5f9;
+}
+body.dark-mode .contact-hovered {
+  background: #23263a;
+  color: #f3f4f6;
+}
+
+/* === Dark Mode for Clients Page === */
+body.dark-mode .clients-page {
+  background: #181c24 !important;
+}
+body.dark-mode .clients-sidebar {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 4px 24px #10121a !important;
+}
+body.dark-mode .client-card {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 1px 4px #10121a !important;
+  border-color: #23263a !important;
+}
+body.dark-mode .client-card.selected, body.dark-mode .client-card:hover {
+  background: #2563eb44 !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 4px 16px #2563eb88 !important;
+  border: 2px solid #6be1ff !important;
+}
+body.dark-mode .client-name {
+  color: #f3f4f6 !important;
+}
+body.dark-mode .client-details-panel {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 4px 24px #10121a !important;
+}
+body.dark-mode .client-details-name,
+body.dark-mode .client-details-contact {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .client-details-tabs button {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .client-details-tabs button.active, body.dark-mode .client-details-tabs button:hover {
+  background: #181c24 !important;
+  color: #6be1ff !important;
+}
+body.dark-mode .overview-card-hover {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 8px 32px #10121a !important;
+}
+body.dark-mode .overview-card-hover h2,
+body.dark-mode .overview-card-hover h3,
+body.dark-mode .overview-card-hover div,
+body.dark-mode .overview-card-hover ul,
+body.dark-mode .overview-card-hover li {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .timeline-step {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .timeline-step-report {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 2px 8px #10121a !important;
+  border-left: 3px solid #6be1ff !important;
+}
+body.dark-mode .timeline-step-img {
+  background: #23263a !important;
+  border-color: #6be1ff !important;
+}
+body.dark-mode .timeline-step-title,
+body.dark-mode .timeline-step-status {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .timeline-dot {
+  background: #23263a !important;
+  border-color: #6be1ff !important;
+  box-shadow: 0 2px 8px #10121a !important;
+}
+
+/* --- Layout for horizontal clients bar on desktop --- */
+.clients-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f8fafc;
+  padding: 2rem 0;
+  max-width: 1800px;
+  margin: 0 auto;
+  gap: 2rem;
+  padding-top: 110px;
+}
+
+.clients-sidebar {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 1.2rem 2rem 1.2rem 2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1.2rem;
+  min-width: 0;
+  max-width: 100vw;
+  height: auto;
+}
+
+.clients-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 220px;
+  max-width: 260px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 1rem 1.2rem;
+}
+
+.clients-search {
+  padding: 1rem;
+  border: 2px solid #e1e1e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+.clients-search:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.clients-controls select {
+  padding: 0.7rem 1rem;
+  border: 2px solid #e1e1e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.3s ease;
+}
+.clients-controls select:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.clients-list {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  max-height: 70vh;
+  width: 100%;
+}
+
+.client-details-panel {
+  flex: 1;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(67,97,238,0.10), 0 1.5px 6px rgba(0,0,0,0.08);
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 90vh;
+  max-width: 100vw;
+  margin-right: 0;
+}
+
+@media (max-width: 1100px) {
+  .clients-page {
+    flex-direction: column;
+    gap: 1.2rem;
+    padding: 0.5rem 0.2rem;
+    max-width: 100vw;
+  }
+  .clients-sidebar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.5rem 0.1rem;
+  }
+  .clients-controls {
+    flex-direction: column;
+    min-width: 0;
+    max-width: none;
+  }
+  .clients-list {
+    flex-direction: row;
+    gap: 1.2rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100vw;
+    max-height: none;
+  }
+  .client-card {
+    min-width: 180px;
+    max-width: 220px;
+  }
+  .client-details-panel {
+    padding: 0.7rem 0.7rem 1.2rem 0.7rem;
+    min-height: 60vh;
+    max-width: 100vw;
+    margin-right: 0;
+  }
+} 

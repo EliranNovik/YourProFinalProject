@@ -1,0 +1,303 @@
+.wa-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e6e9ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.wa-chat-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(67, 97, 238, 0.10);
+  width: 98vw;
+  height: 90vh;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 1200px;
+}
+
+.wa-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #f3f4f6;
+  padding: 1rem 1.2rem;
+  border-bottom: 1.5px solid #e0e7ff;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.wa-back-btn {
+  color: #4361ee;
+  font-weight: 600;
+  font-size: 1.2rem;
+  border: none;
+  background: none;
+  text-decoration: none;
+  margin-right: 0.2rem;
+  transition: color 0.2s;
+}
+.wa-back-btn:hover {
+  color: #22223b;
+  text-decoration: underline;
+}
+
+.wa-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.10);
+  background: #f3f4f6;
+}
+
+.wa-title-group {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.wa-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #22223b;
+  margin-bottom: 0.1rem;
+}
+.wa-type {
+  color: #6B7280;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.wa-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8f9fa;
+  padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wa-bubble-row {
+  display: flex;
+  margin-bottom: 0.2rem;
+}
+.wa-bubble-row-me {
+  justify-content: flex-end;
+}
+.wa-bubble-row-them {
+  justify-content: flex-start;
+}
+.wa-bubble {
+  max-width: 75%;
+  padding: 0.7rem 1.1rem 0.5rem 1.1rem;
+  border-radius: 18px;
+  font-size: 1.05rem;
+  position: relative;
+  word-break: break-word;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.04);
+  margin-bottom: 0.1rem;
+}
+.wa-bubble.me {
+  background: #d1f7c4;
+  color: #22223b;
+  border-bottom-right-radius: 6px;
+  align-self: flex-end;
+}
+.wa-bubble.them {
+  background: #fff;
+  color: #22223b;
+  border-bottom-left-radius: 6px;
+  border: 1.5px solid #e0e7ff;
+  align-self: flex-start;
+}
+.wa-bubble-time {
+  display: block;
+  font-size: 0.78rem;
+  color: #6B7280;
+  margin-top: 0.2rem;
+  text-align: right;
+}
+
+.wa-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.7rem;
+  background: #f3f4f6;
+  padding: 1rem 1.2rem;
+  border-top: 1.5px solid #e0e7ff;
+}
+.wa-input {
+  flex: 1;
+  border-radius: 16px;
+  border: 1.5px solid #e0e7ff;
+  padding: 0.7rem 1rem;
+  font-size: 1.08rem;
+  background: #fff;
+  resize: none;
+  min-height: 38px;
+  max-height: 120px;
+  transition: border-color 0.2s;
+}
+.wa-input:focus {
+  outline: none;
+  border-color: #4361ee;
+}
+.wa-send-btn {
+  background: #4361ee;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.08);
+}
+.wa-send-btn:disabled {
+  background: #bfc8f8;
+  cursor: not-allowed;
+}
+.wa-send-btn:hover:not(:disabled) {
+  background: #3651d4;
+}
+
+@media (max-width: 900px) {
+  .wa-chat-card {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    max-width: 100vw;
+    min-height: 100vh;
+  }
+}
+
+.wa-header, .wa-input-row {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+}
+.wa-chat-body {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+@media (max-width: 600px) {
+  .wa-header, .wa-input-row {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .wa-chat-body {
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
+}
+
+/* === Dark Mode for Messaging Page === */
+body.dark-mode .wa-chat-card,
+body.dark-mode .wa-header,
+body.dark-mode .wa-input-row,
+body.dark-mode .wa-chat-body {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .wa-bubble {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #6be1ff !important;
+}
+body.dark-mode .wa-bubble.me {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1.5px solid #2563eb !important;
+}
+body.dark-mode .wa-bubble.them {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .wa-input {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .wa-input:focus {
+  border-color: #6be1ff !important;
+}
+body.dark-mode .wa-send-btn {
+  background: #6be1ff !important;
+  color: #181c24 !important;
+}
+body.dark-mode .wa-send-btn:hover {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .wa-bubble-time {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .message-sidebar {
+  background: #181c24 !important;
+  color: #bfc8f8 !important;
+  border-right: 1.5px solid #23263a !important;
+}
+
+/* === Stronger Dark Mode for Messaging Page === */
+body.dark-mode .wa-bg {
+  background: #181c24 !important;
+}
+body.dark-mode .wa-chat-card,
+body.dark-mode .wa-header,
+body.dark-mode .wa-chat-body,
+body.dark-mode .wa-input-row {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+}
+body.dark-mode .wa-bubble,
+body.dark-mode .wa-bubble.me,
+body.dark-mode .wa-bubble.them {
+  background: #23263a !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #6be1ff !important;
+  box-shadow: 0 2px 8px #10121a !important;
+}
+body.dark-mode .wa-bubble.me {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1.5px solid #2563eb !important;
+}
+body.dark-mode .wa-bubble.them {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .wa-input {
+  background: #181c24 !important;
+  color: #f3f4f6 !important;
+  border: 1.5px solid #23263a !important;
+}
+body.dark-mode .wa-input:focus {
+  border-color: #6be1ff !important;
+}
+body.dark-mode .wa-send-btn {
+  background: #6be1ff !important;
+  color: #181c24 !important;
+}
+body.dark-mode .wa-send-btn:hover {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+body.dark-mode .wa-bubble-time {
+  color: #bfc8f8 !important;
+}
+body.dark-mode .message-sidebar {
+  background: #181c24 !important;
+  color: #bfc8f8 !important;
+  border-right: 1.5px solid #23263a !important;
+} 

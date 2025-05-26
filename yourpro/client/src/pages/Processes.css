@@ -1,0 +1,109 @@
+.clients-page {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.client-details-panel {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 24px;
+  flex: 1;
+}
+
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th {
+  padding: 18px 12px;
+  text-align: left;
+  background: #f8fafc;
+  color: #23236a;
+  font-weight: 700;
+  font-size: 16;
+}
+
+td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #e5eaf1;
+}
+
+tr:hover {
+  background: #f1f5f9;
+}
+
+/* Button styles */
+button {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Input styles */
+input {
+  transition: all 0.2s;
+}
+
+input:focus {
+  outline: none;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.1);
+}
+
+/* Status colors */
+.status-done {
+  color: #22c55e;
+}
+
+.status-in-progress {
+  color: #fbbf24;
+}
+
+.status-pending {
+  color: #a3a3a3;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .clients-page {
+    background: #0f172a;
+  }
+
+  .client-details-panel {
+    background: #1e293b;
+  }
+
+  th {
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+
+  td {
+    border-bottom-color: #334155;
+  }
+
+  tr:hover {
+    background: #334155;
+  }
+
+  input {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9;
+  }
+
+  input::placeholder {
+    color: #94a3b8;
+  }
+} 

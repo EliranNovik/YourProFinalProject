@@ -1,0 +1,299 @@
+/* === Settings Page Styling === */
+.settings-page, .settings-card, .settings-section {
+  background: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.settings-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #23236a;
+  margin-bottom: 2.2rem;
+  text-align: left;
+  padding-left: 0.5rem;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 2.2rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1.5px solid #e5eaf1;
+  background: none;
+  padding-left: 0.5rem;
+}
+.settings-tab {
+  background: none;
+  border: none;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 0.7rem 0.2rem 1.1rem 0.2rem;
+  border-radius: 0;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  transition: color 0.18s, border-bottom 0.18s;
+  outline: none;
+}
+.settings-tab.active {
+  color: #23236a;
+  font-weight: 800;
+  border-bottom: 2.5px solid #23236a;
+  background: none;
+}
+
+section {
+  margin-bottom: 2.5rem;
+  border-bottom: 1.5px solid #f3f4f6;
+  padding-bottom: 2.2rem;
+}
+section:last-child {
+  border-bottom: none;
+}
+
+.settings-field {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+  padding-left: 0.5rem;
+}
+.settings-field label {
+  font-weight: 600;
+  color: #23236a;
+  min-width: 120px;
+}
+.settings-input {
+  flex: unset;
+  max-width: 260px;
+  width: 100%;
+  margin-right: 0.5rem;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid #e5eaf1;
+  border-radius: 4px;
+  font-size: 0.92rem;
+  background: #fff;
+  color: #23236a;
+  transition: border 0.18s;
+  height: 2.2rem;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.settings-input:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+.settings-btn {
+  background: #23236a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.3rem;
+  font-weight: 700;
+  font-size: 1.02rem;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.settings-btn:hover {
+  background: #1d1e3a;
+}
+
+/* Modern toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e5eaf1;
+  transition: .4s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #fff;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px #b0b7c3;
+}
+input:checked + .slider {
+  background-color: #23236a;
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+.slider.round {
+  border-radius: 24px;
+}
+
+.settings-toggle-label {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #23236a;
+  margin-left: 1.2rem;
+}
+
+/* Section header styling */
+section > h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #23236a;
+  margin-bottom: 1.2rem;
+  margin-top: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+/* Remove old card and section backgrounds in dark mode */
+body.dark-mode .settings-page, body.dark-mode .settings-card, body.dark-mode .settings-section, body.dark-mode section {
+  background: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+body.dark-mode .settings-title, body.dark-mode .settings-section h2, body.dark-mode .settings-field label, body.dark-mode section > h2 {
+  color: #f3f4f6;
+}
+body.dark-mode .settings-tabs {
+  border-bottom: 1.5px solid #23263a;
+}
+body.dark-mode .settings-tab {
+  color: #bfc8f8;
+}
+body.dark-mode .settings-tab.active {
+  color: #6be1ff;
+  border-bottom: 2.5px solid #6be1ff;
+}
+body.dark-mode .settings-input {
+  background: #23263a;
+  color: #f3f4f6;
+  border: 1px solid #23263a;
+}
+body.dark-mode .settings-input:focus {
+  border-color: #6be1ff;
+}
+body.dark-mode .settings-btn {
+  background: #6be1ff;
+  color: #23263a;
+}
+body.dark-mode .settings-btn:hover {
+  background: #2563eb;
+  color: #fff;
+}
+body.dark-mode .settings-toggle-label {
+  color: #6be1ff;
+}
+body.dark-mode .slider {
+  background-color: #23263a;
+}
+body.dark-mode input:checked + .slider {
+  background-color: #6be1ff;
+}
+body.dark-mode .slider:before {
+  background-color: #23263a;
+}
+
+@media (max-width: 700px) {
+  .settings-page {
+    padding: 1.2rem 0.3rem;
+    border-radius: 12px;
+  }
+  .settings-title {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  .settings-tabs {
+    gap: 0.3rem;
+    margin-bottom: 1.2rem;
+  }
+  .settings-tab {
+    font-size: 0.98rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 8px 8px 0 0;
+  }
+  .settings-section h2 {
+    font-size: 1.05rem;
+    margin-bottom: 0.7rem;
+  }
+  .settings-card {
+    padding: 0.7rem 0.5rem;
+    border-radius: 8px;
+  }
+  .settings-field label {
+    min-width: 80px;
+    font-size: 0.98rem;
+  }
+  .settings-btn {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+  }
+  .settings-input {
+    max-width: 100%;
+    width: 100%;
+    height: 2.2rem;
+  }
+}
+
+.custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid #2563eb;
+  background: transparent;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: background 0.18s, border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.07);
+  outline: none;
+}
+.custom-checkbox:hover, .custom-checkbox:focus {
+  border-color: #6be1ff;
+  box-shadow: 0 0 0 2px #bfc8f8;
+}
+.custom-checkbox.checked {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.custom-checkbox.checked svg {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.18s, transform 0.18s;
+}
+.custom-checkbox svg {
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.18s, transform 0.18s;
+}
+body.dark-mode .custom-checkbox {
+  border-color: #6be1ff;
+  background: transparent;
+  box-shadow: 0 1px 4px #10121a;
+}
+body.dark-mode .custom-checkbox.checked {
+  background: #6be1ff;
+  border-color: #6be1ff;
+}
+body.dark-mode .custom-checkbox.checked svg path {
+  stroke: #181c24;
+} 
