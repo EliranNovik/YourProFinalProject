@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FreelancerProfile.css';
-import { MOCK_USER } from '../data/userData';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../config/supabase';
 
-interface User {
-  id: number;
-  name: string;
-  location: string;
+interface UserProfileData {
+  id: string;
+  full_name: string;
   email: string;
   phone?: string;
   website?: string;
-  avatar?: string;
-  coverImage?: string;
+  avatar_url?: string;
+  cover_image?: string;
+  location?: string;
 }
 
 // Helper to get initials from name
@@ -23,7 +24,7 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-const UserAvatar: React.FC<{ avatar: string; name: string }> = ({ avatar, name }) => {
+const UserAvatar: React.FC<{ avatar: string | undefined; name: string }> = ({ avatar, name }) => {
   const [avatarError, setAvatarError] = useState(false);
   if (avatarError || !avatar) {
     return <div className="profile-avatar-fallback">{getInitials(name)}</div>;
@@ -39,10 +40,36 @@ const UserAvatar: React.FC<{ avatar: string; name: string }> = ({ avatar, name }
 };
 
 const UserProfile: React.FC = () => {
-  const [editData, setEditData] = useState<User>(MOCK_USER);
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState(MOCK_USER.avatar);
-  const [coverPreview, setCoverPreview] = useState(MOCK_USER.coverImage);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
+  const [coverPreview, setCoverPreview] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (error) {
+        setProfile(null);
+      } else {
+        setProfile(data);
+        setAvatarPreview(data.avatar_url);
+        setCoverPreview(data.cover_image);
+      }
+      setLoading(false);
+    };
+    fetchProfile();
+  }, [user]);
+
+  if (loading) return <div>Loading...</div>;
+  if (!profile) return <div>No profile found.</div>;
 
   return (
     <div className="with-navbar-padding">
@@ -64,7 +91,7 @@ const UserProfile: React.FC = () => {
                       if (file) {
                         const url = URL.createObjectURL(file);
                         setCoverPreview(url);
-                        setEditData({ ...editData, coverImage: url });
+                        setProfile({ ...profile, cover_image: url });
                       }
                     }}
                   />
@@ -83,7 +110,7 @@ const UserProfile: React.FC = () => {
             )}
             <div className="profile-main-info">
               <div style={{ position: 'relative' }}>
-                <UserAvatar avatar={avatarPreview || ''} name={editData.name} />
+                <UserAvatar avatar={avatarPreview} name={profile.full_name} />
                 {editOpen && (
                   <label className="upload-avatar-label">
                     <input
@@ -95,7 +122,7 @@ const UserProfile: React.FC = () => {
                         if (file) {
                           const url = URL.createObjectURL(file);
                           setAvatarPreview(url);
-                          setEditData({ ...editData, avatar: url });
+                          setProfile({ ...profile, avatar_url: url });
                         }
                       }}
                     />
@@ -107,11 +134,11 @@ const UserProfile: React.FC = () => {
                 {editOpen ? (
                   <input
                     className="edit-input main-name"
-                    value={editData.name}
-                    onChange={e => setEditData({ ...editData, name: e.target.value })}
+                    value={profile.full_name}
+                    onChange={e => setProfile({ ...profile, full_name: e.target.value })}
                   />
                 ) : (
-                  <h1>{editData.name}</h1>
+                  <h1>{profile.full_name}</h1>
                 )}
                 <div className="profile-location">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -121,11 +148,11 @@ const UserProfile: React.FC = () => {
                   {editOpen ? (
                     <input
                       className="edit-input main-location"
-                      value={editData.location}
-                      onChange={e => setEditData({ ...editData, location: e.target.value })}
+                      value={profile.location || ''}
+                      onChange={e => setProfile({ ...profile, location: e.target.value })}
                     />
                   ) : (
-                    <span>{editData.location}</span>
+                    <span>{profile.location}</span>
                   )}
                 </div>
               </div>
@@ -154,11 +181,11 @@ const UserProfile: React.FC = () => {
                       <input
                         className="section-edit-input"
                         type="email"
-                        value={editData.email}
-                        onChange={e => setEditData({ ...editData, email: e.target.value })}
+                        value={profile.email}
+                        onChange={e => setProfile({ ...profile, email: e.target.value })}
                       />
                     ) : (
-                      <span>{editData.email}</span>
+                      <span>{profile.email}</span>
                     )}
                   </div>
                   <div className="contact-item">
@@ -169,11 +196,11 @@ const UserProfile: React.FC = () => {
                       <input
                         className="section-edit-input"
                         type="tel"
-                        value={editData.phone}
-                        onChange={e => setEditData({ ...editData, phone: e.target.value })}
+                        value={profile.phone || ''}
+                        onChange={e => setProfile({ ...profile, phone: e.target.value })}
                       />
                     ) : (
-                      <span>{editData.phone}</span>
+                      <span>{profile.phone}</span>
                     )}
                   </div>
                   <div className="contact-item">
@@ -185,11 +212,11 @@ const UserProfile: React.FC = () => {
                       <input
                         className="section-edit-input"
                         type="url"
-                        value={editData.website}
-                        onChange={e => setEditData({ ...editData, website: e.target.value })}
+                        value={profile.website || ''}
+                        onChange={e => setProfile({ ...profile, website: e.target.value })}
                       />
                     ) : (
-                      <span>{editData.website}</span>
+                      <span>{profile.website}</span>
                     )}
                   </div>
                 </div>

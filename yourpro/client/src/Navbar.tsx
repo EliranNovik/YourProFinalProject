@@ -11,37 +11,44 @@ import MenuIcon from '@mui/icons-material/Menu';
 import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
+import { useAuth } from './contexts/AuthContext';
+import Avatar from '@mui/material/Avatar';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Logout from '@mui/icons-material/Logout';
+import Person from '@mui/icons-material/Person';
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>
   ) },
   { name: 'Clients', path: '/clients', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>
   ) },
   { name: 'Bookings', path: '/bookings', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
   ) },
   { name: 'Processes', path: '/processes', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
   ) },
   { name: 'Administration', path: '/administration', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/></svg>
   ) },
   { name: 'Notification', path: '/notification', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
   ) },
   { name: 'Payments', path: '/payments', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/></svg>
   ) },
   { name: 'Settings', path: '/settings', icon: (
-    <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h.09a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h.09a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.09a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h.09a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h.09a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.09a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
   ) },
   {
     name: 'Requests',
     path: '/requests',
     icon: (
-      <svg width="24" height="24" fill="none" stroke="#2563eb" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M4 11h16"/><circle cx="12" cy="17" r="1.5"/></svg>
+      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M4 11h16"/><circle cx="12" cy="17" r="1.5"/></svg>
     )
   },
 ];
@@ -52,8 +59,12 @@ const topNavItems = [
   { name: 'About Us', path: '/about' },
   { name: 'Contact', path: '/contact' },
   { name: 'Professionals', path: '/professionals' },
-  { name: 'Login', path: '/login' },
   { name: 'Messages', path: '/messages' },
+];
+
+const rightNavItems = [
+  { name: 'Login', path: '/login' },
+  { name: 'Register', path: '/register' },
 ];
 
 const Navbar: React.FC = () => {
@@ -69,6 +80,8 @@ const Navbar: React.FC = () => {
   const [searchResults, setSearchResults] = useState<{ name: string; path: string }[]>([]);
   const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
+  const { user, signOut } = useAuth();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const allFeatures: { name: string; path: string }[] = [
     ...navItems.map(i => ({ name: i.name, path: i.path })),
@@ -139,6 +152,29 @@ const Navbar: React.FC = () => {
     setSearchResults([]);
     navigate(path);
   };
+
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Filter out login from topNavItems when user is logged in
+  const filteredTopNavItems = topNavItems.filter(item => {
+    if ((item.name === 'My Profile' || item.name === 'Messages') && !user) return false;
+    return user ? item.name !== 'Login' : true;
+  });
 
   return (
     <>
@@ -221,7 +257,7 @@ const Navbar: React.FC = () => {
               pointerEvents: isHomePage || topNavExpanded ? 'auto' : 'none',
             }}
           >
-            {topNavItems.filter(i => i.path !== '/').map(item => (
+            {filteredTopNavItems.filter(i => i.path !== '/').map(item => (
               <Button
                 key={item.name}
                 component={Link}
@@ -253,8 +289,8 @@ const Navbar: React.FC = () => {
                     transform: 'translateX(-50%)',
                   },
                   '&:hover::after': {
-                    width: '80%',
-                  }
+                    width: '100%',
+                  },
                 }}
               >
                 {item.name}
@@ -262,63 +298,91 @@ const Navbar: React.FC = () => {
             ))}
           </Box>
 
-          {/* Search bar - right aligned */}
+          {/* Right side navigation items */}
           <Box
             sx={{
               display: isMobile ? 'none' : 'flex',
               alignItems: 'center',
-              minWidth: 260,
-              maxWidth: 340,
-              ml: 3,
-              opacity: isHomePage ? 1 : topNavExpanded ? 1 : 0,
-              transition: 'opacity 0.2s',
-              pointerEvents: isHomePage || topNavExpanded ? 'auto' : 'none',
+              gap: 2,
             }}
           >
-            <TextField
-              size="small"
-              variant="outlined"
-              placeholder="Search features..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onFocus={() => !isHomePage && setTopNavExpanded(true)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#2563eb' }} />
-                  </InputAdornment>
-                ),
-                sx: {
-                  borderRadius: 999,
-                  background: '#f7f9fb',
+            {!user && rightNavItems.map((item) => (
+              <Button
+                key={item.name}
+                component={Link}
+                to={item.path}
+                variant={item.name === 'Register' ? 'contained' : 'text'}
+                sx={{
+                  color: item.name === 'Register' ? '#fff' : '#2563eb',
+                  fontWeight: 600,
                   fontSize: '1rem',
-                  minWidth: 180,
-                },
-              }}
-              sx={{
-                width: '100%',
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 999,
-                  background: '#f7f9fb',
-                  fontSize: '1rem',
-                },
-              }}
-            />
-            {search && searchResults.length > 0 && (
-              <Box className="nav-search-dropdown" sx={{ position: 'absolute', top: 48, right: 0, width: '100%', zIndex: 2000 }}>
-                {searchResults.map(result => (
-                  <Box
-                    key={result.path}
-                    className="nav-search-result"
-                    onMouseDown={() => handleSearchSelect(result.path)}
-                    sx={{ px: 2, py: 1, cursor: 'pointer', '&:hover': { background: '#f1f5f9' } }}
-                  >
-                    {result.name}
-                  </Box>
-                ))}
-              </Box>
-            )}
+                  textTransform: 'none',
+                  bgcolor: item.name === 'Register' ? '#2563eb' : 'transparent',
+                  '&:hover': {
+                    bgcolor: item.name === 'Register' ? '#1d4ed8' : 'transparent',
+                    color: item.name === 'Register' ? '#fff' : '#1d4ed8',
+                  },
+                }}
+              >
+                {item.name}
+              </Button>
+            ))}
           </Box>
+
+          {/* User profile - right aligned */}
+          {user && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography
+                sx={{
+                  color: '#2563eb',
+                  fontWeight: 500,
+                  display: { xs: 'none', sm: 'block' },
+                }}
+              >
+                Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+              </Typography>
+              <IconButton
+                onClick={handleProfileMenuOpen}
+                size="small"
+                sx={{ ml: 2 }}
+                aria-controls="profile-menu"
+                aria-haspopup="true"
+              >
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: '#2563eb',
+                    fontSize: '1rem',
+                  }}
+                >
+                  {user.user_metadata?.full_name?.[0] || 'U'}
+                </Avatar>
+              </IconButton>
+              <Menu
+                id="profile-menu"
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleProfileMenuClose}
+                onClick={handleProfileMenuClose}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem component={Link} to="/profile">
+                  <ListItemIcon>
+                    <Person fontSize="small" />
+                  </ListItemIcon>
+                  Profile
+                </MenuItem>
+                <MenuItem onClick={handleSignOut}>
+                  <ListItemIcon>
+                    <Logout fontSize="small" />
+                  </ListItemIcon>
+                  Sign Out
+                </MenuItem>
+              </Menu>
+            </Box>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -366,8 +430,8 @@ const Navbar: React.FC = () => {
         </div>
       )}
 
-      {/* Right sidebar */}
-      {(!isMobile || sidebarVisible) && (
+      {/* Right sidebar: only show if user is signed in */}
+      {user && (!isMobile || sidebarVisible) && (
         <Box sx={{ position: 'fixed', top: 0, right: 0, height: '100vh', zIndex: 2000, pointerEvents: 'auto' }}>
           <aside
             className={`right-fixed-sidebar${sideNavExpanded ? ' expanded' : ''}`}
@@ -385,7 +449,8 @@ const Navbar: React.FC = () => {
                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(100%)', 
                 zIndex: 3000 
               } : {}),
-              marginTop: isHomePage ? '72px' : 0,
+              marginTop: isHomePage ? '120px' : '150px',
+              height: isHomePage ? 'calc(100vh - 120px)' : 'calc(100vh - 56px)',
             }}
           >
             {/* Arrow button to close sidebar on mobile */}

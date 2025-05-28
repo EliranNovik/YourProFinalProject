@@ -1,6 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  Container,
+  TextField,
+  Button,
+  Paper,
+  IconButton,
+  Grid,
+  Card,
+  CardContent,
+} from '@mui/material';
+import MicIcon from '@mui/icons-material/Mic';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import SearchIcon from '@mui/icons-material/Search';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import './HomePage.css';
+import AISearchBar from '../components/AISearchBar';
 
 const HomePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,6 +34,8 @@ const HomePage: React.FC = () => {
   const [companyInfoVisible, setCompanyInfoVisible] = useState(false);
   const freelancerRef = useRef<HTMLDivElement>(null);
   const companyRef = useRef<HTMLDivElement>(null);
+  const aiInputRef = useRef<HTMLInputElement>(null);
+  const [aiHighlight, setAiHighlight] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -73,6 +95,15 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Function to trigger highlight
+  const triggerAiHighlight = () => {
+    setAiHighlight(true);
+    setTimeout(() => setAiHighlight(false), 1200);
+    if (aiInputRef.current) {
+      aiInputRef.current.focus();
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       if (freelancerRef.current) {
@@ -90,94 +121,138 @@ const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="home-container with-navbar-padding">
-      <main className="main-content">
-        {/* Header and subtitle moved into clients container */}
-      </main>
-      <section className="client-hero-fiverr-style">
-        <div className="client-hero-bg-fiverr">
-          <div className="client-hero-overlay-fiverr">
-            <h1 className="client-hero-title">Connect with Professionals</h1>
-            <p className="client-hero-subtitle">Join our platform as a freelancer, company or client, start collaborating or find your professional today</p>
-            <Link
-              to="/register"
-              style={{
-                display: 'inline-block',
-                background: '#fbbf24',
-                color: '#23263a',
-                fontWeight: 700,
-                fontSize: '1.18rem',
-                borderRadius: 999,
-                padding: '1rem 2.5rem',
-                margin: '1.2rem 0 1.5rem 0',
-                boxShadow: '0 2px 16px #fbbf2433',
-                border: '2px solid #fbbf24',
-                textDecoration: 'none',
-                transition: 'background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s',
-              }}
-              className="split-hero-cta client-cta"
-            >
-              Register
-            </Link>
-            <div className="client-hero-searchbar-row">
-              <button
-                type="button"
-                className={`speech-btn${listening ? ' listening' : ''}`}
-                aria-label="Speak to search"
-                onClick={handleSpeech}
-                style={{ marginRight: '0.5rem' }}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="9" y="2" width="6" height="12" rx="3" stroke="#232323" strokeWidth="2" fill="none" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="#232323" strokeWidth="2" fill="none" />
-                  <line x1="12" y1="22" x2="12" y2="18" stroke="#232323" strokeWidth="2" />
-                  <line x1="8" y1="22" x2="16" y2="22" stroke="#232323" strokeWidth="2" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="speech-btn camera-btn"
-                aria-label="Upload image or project"
-                onClick={() => setShowUpload(v => !v)}
-                style={{ marginRight: '0.7rem' }}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3" y="7" width="18" height="12" rx="3" stroke="#232323" strokeWidth="2" fill="none" />
-                  <circle cx="12" cy="13" r="3.5" stroke="#232323" strokeWidth="2" fill="none" />
-                  <rect x="8" y="3" width="8" height="4" rx="2" stroke="#232323" strokeWidth="2" fill="none" />
-                </svg>
-              </button>
-              <input
-                type="text"
-                className="client-hero-searchbar"
-                placeholder="Search for any service..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyPress={e => e.key === 'Enter' && handleSearch()}
-              />
-              <button className="client-hero-search-btn" onClick={handleSearch}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="11" cy="11" r="8" stroke="#232323" strokeWidth="2" />
-                  <line x1="20" y1="20" x2="16.65" y2="16.65" stroke="#232323" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-            <div className="client-hero-features-fiverr-row">
-              <div className="feature-item client-feature-yellow">
-                <div className="feature-item-title">Search and hire a pro with enhanced AI features</div>
-              </div>
-              <div className="feature-item client-feature-yellow">
-                <div className="feature-item-title">Book a pro with ease with our intuitive booking system</div>
-              </div>
-              <div className="feature-item client-feature-yellow">
-                <div className="feature-item-title">Get advice from an industry expert</div>
-                <div className="feature-item-desc">Consultations →</div>
-              </div>
-            </div>
-          </div>
-          <img src="/client.jpg" alt="Client" className="client-hero-bg-img-fiverr" />
+    <Box sx={{ 
+      minHeight: '100vh',
+      background: '#fff',
+      pt: 18,
+      pb: 6 
+    }}>
+      {/* Hero Section */}
+      <Box sx={{ textAlign: 'center', mb: 8 }}>
+        <Typography
+          variant="h1"
+          sx={{
+            fontSize: { xs: '2.5rem', md: '3.5rem' },
+            fontWeight: 900,
+            color: '#1976d2',
+            mb: 5,
+            letterSpacing: '-0.5px',
+            lineHeight: 1.2
+          }}
+        >
+          Connect with Professionals
+        </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            color: '#475569',
+            mb: 10,
+            maxWidth: '800px',
+            mx: 'auto',
+            lineHeight: 1.5,
+            fontWeight: 500
+          }}
+        >
+          Join our platform as a freelancer, company or client, start collaborating or find your professional today
+        </Typography>
+
+        {/* Search Section - minimal, no container */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', margin: '40px 0 32px 0' }}>
+          <AISearchBar
+            onSearch={() => {}}
+            inputRef={aiInputRef}
+            highlight={aiHighlight}
+          />
         </div>
-      </section>
+
+        {/* Feature Cards */}
+        <Grid container spacing={3} sx={{ mt: 6, mb: 15 }}>
+          <Grid item xs={12} md={4}>
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 4,
+                border: '1px solid #2563eb',
+                bgcolor: '#2563eb',
+                height: '100%',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                color: '#fff',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 20px 25px -5px rgb(37 99 235 / 0.18), 0 8px 10px -6px rgb(37 99 235 / 0.12)',
+                  bgcolor: '#1d4ed8',
+                }
+              }}
+              onClick={triggerAiHighlight}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <AutoAwesomeIcon sx={{ fontSize: 40, color: '#fff', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#fff' }}>
+                  Search and hire a pro with enhanced AI features
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 4,
+                border: '1px solid #2563eb',
+                bgcolor: '#2563eb',
+                height: '100%',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'pointer',
+                color: '#fff',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 20px 25px -5px rgb(37 99 235 / 0.18), 0 8px 10px -6px rgb(37 99 235 / 0.12)',
+                  bgcolor: '#1d4ed8',
+                }
+              }}
+              onClick={() => navigate('/professionals')}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <CalendarTodayIcon sx={{ fontSize: 40, color: '#fff', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#fff' }}>
+                  Book a pro with ease with our intuitive booking system
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 4,
+                border: '1px solid #2563eb',
+                bgcolor: '#2563eb',
+                height: '100%',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'pointer',
+                color: '#fff',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 20px 25px -5px rgb(37 99 235 / 0.18), 0 8px 10px -6px rgb(37 99 235 / 0.12)',
+                  bgcolor: '#1d4ed8',
+                }
+              }}
+              onClick={() => navigate('/contact')}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <SupportAgentIcon sx={{ fontSize: 40, color: '#fff', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#fff' }}>
+                  Get advice from an industry expert
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#fff' }}>
+                  Consultations →
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+        <Box sx={{ height: { xs: 32, md: 56 } }} />
+      </Box>
 
       {showUpload && (
         <div className="upload-section upload-animate">
@@ -243,7 +318,7 @@ const HomePage: React.FC = () => {
       )}
       {/* Freelancer Info and Container Row */}
       <div className="split-row freelancer-row" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', margin: '0 auto', maxWidth: '1600px' }}>
-        <div className="side-info freelancer-info" style={{ flex: '0 0 320px', opacity: freelancerInfoVisible ? 1 : 0, transform: freelancerInfoVisible ? 'translateX(0)' : 'translateX(-40px)', transition: 'opacity 0.7s, transform 0.7s', fontSize: '1.35rem', color: '#23236a', fontWeight: 600, marginLeft: '2.5rem', maxWidth: 320, zIndex: 10, textAlign: 'left' }}>
+        <div className="side-info freelancer-info" style={{ marginTop: '48px', flex: '0 0 320px', opacity: freelancerInfoVisible ? 1 : 0, transform: freelancerInfoVisible ? 'translateX(0)' : 'translateX(-40px)', transition: 'opacity 0.7s, transform 0.7s', fontSize: '1.35rem', color: '#23236a', fontWeight: 600, marginLeft: '2.5rem', maxWidth: 320, zIndex: 10, textAlign: 'left' }}>
           Are you a freelancer? <br />Join our community and enjoy all its features.
         </div>
         <section className="feature-section freelancer-feature split-hero-section" ref={freelancerRef} style={{ flex: 1, marginLeft: '2.5rem' }}>
@@ -279,7 +354,7 @@ const HomePage: React.FC = () => {
             <Link to="/company-registration" className="split-hero-cta company-cta">Join as Company</Link>
           </div>
         </section>
-        <div className="side-info company-info" style={{ flex: '0 0 320px', opacity: companyInfoVisible ? 1 : 0, transform: companyInfoVisible ? 'translateX(0)' : 'translateX(40px)', transition: 'opacity 0.7s, transform 0.7s', fontSize: '1.35rem', color: '#15803d', fontWeight: 600, marginRight: '2.5rem', maxWidth: 320, zIndex: 10, textAlign: 'left' }}>
+        <div className="side-info company-info" style={{ marginTop: '48px', flex: '0 0 320px', opacity: companyInfoVisible ? 1 : 0, transform: companyInfoVisible ? 'translateX(0)' : 'translateX(40px)', transition: 'opacity 0.7s, transform 0.7s', fontSize: '1.35rem', color: '#15803d', fontWeight: 600, marginRight: '2.5rem', maxWidth: 320, zIndex: 10, textAlign: 'left' }}>
           Are you a company? <br />Join our community and access top talent and business tools.
         </div>
       </div>
@@ -332,7 +407,7 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </div>
-    </div>
+    </Box>
   );
 };
 
