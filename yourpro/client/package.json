@@ -38,7 +38,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "DANGEROUSLY_DISABLE_HOST_CHECK=true react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -68,7 +68,9 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.15.23",
     "@types/node-fetch": "^2.6.12",
-    "@types/react-icons": "^3.0.0"
+    "@types/react-icons": "^3.0.0",
+    "http-proxy-middleware": "^3.0.5",
+    "react-app-rewired": "^2.2.1"
   },
   "proxy": "http://localhost:3002"
 }

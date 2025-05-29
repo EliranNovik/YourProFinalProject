@@ -220,17 +220,17 @@
 }
 
 .freelancer-card-mock.big-modern {
-  margin-top: 2.5rem;
-  background: #f3f6fd;
-  border-radius: 32px;
-  box-shadow: 0 8px 32px #2563eb22;
-  padding: 3.5rem 2.5rem 2.5rem 2.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px #23263a11;
+  padding: 2.5rem;
+  margin: 0 auto;
   max-width: 480px;
   width: 100%;
-  animation: fadeInUp 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border: 1.5px solid #e5eaf1;
 }
 
 .freelancer-avatar-mock.big-modern {
@@ -384,4 +384,119 @@
   text-align: center;
   letter-spacing: -0.5px;
   margin-top: 0.5rem;
+}
+
+/* Modern layout for SearchingForPro */
+.searching-for-pro-modern-layout {
+  min-height: 100vh;
+  background: none !important;
+  padding: 120px 2.5rem 2.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.searching-center-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2.5rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 2.5rem;
+}
+
+.modern-centered-card {
+  flex: 0 1 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ai-job-report-modern {
+  flex: 0 1 480px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px #23263a11;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border: 1.5px solid #e5eaf1;
+  position: relative;
+}
+
+.ai-job-report-title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #23263a;
+  margin-bottom: 0.5rem;
+}
+
+.ai-job-report-title svg {
+  color: #2563eb;
+  font-size: 1.8rem;
+}
+
+.ai-job-report-summary {
+  color: #23263a;
+  font-size: 1.08rem;
+  font-weight: 600;
+  margin-bottom: 0.7rem;
+}
+.ai-job-report-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.05rem;
+  margin-bottom: 0.3rem;
+}
+.ai-job-report-label {
+  color: #6b7280;
+  font-weight: 700;
+}
+.ai-job-report-value {
+  font-weight: 800;
+  font-size: 1.08rem;
+}
+.ai-job-report-value.time {
+  color: #15803d;
+}
+.ai-job-report-value.cost {
+  color: #f59e42;
+}
+.ai-job-report-error {
+  color: #dc2626;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+}
+.ai-job-report-loading {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .searching-for-pro-modern-layout {
+    padding: 100px 1rem 1rem 1rem;
+  }
+  
+  .searching-center-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .modern-centered-card,
+  .ai-job-report-modern {
+    flex: 1;
+    width: 100%;
+    max-width: 480px;
+  }
 } 

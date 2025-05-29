@@ -337,6 +337,7 @@ const HomePage: React.FC = () => {
           </div>
         </section>
       </div>
+      <Box sx={{ height: { xs: 36, md: 90 } }} />
       {/* Companies Info and Container Row (reversed) */}
       <div className="split-row company-row" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', margin: '0 auto', maxWidth: '1600px' }}>
         <section className="feature-section company-feature split-hero-section" ref={companyRef} style={{ flex: 1, marginRight: '2.5rem' }}>

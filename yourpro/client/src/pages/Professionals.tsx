@@ -23,6 +23,8 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import NotesIcon from '@mui/icons-material/Notes';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import SendIcon from '@mui/icons-material/Send';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
 const Professionals: React.FC = () => {
   const navigate = useNavigate();
@@ -567,13 +569,17 @@ const Professionals: React.FC = () => {
             <Button
               variant="contained"
               color="primary"
+              className="book-button"
               onClick={e => { e.preventDefault(); handleBook(freelancer); }}
+              startIcon={<SendIcon />}
             >
               Book Me
             </Button>
             <Button
               variant="outlined"
+              className="message-button"
               onClick={e => { e.preventDefault(); handleMessage(freelancer.id, 'freelancer'); }}
+              startIcon={<ChatBubbleOutlineIcon />}
             >
               Message
             </Button>

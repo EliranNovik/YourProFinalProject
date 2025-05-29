@@ -224,48 +224,67 @@ const JobInProgress: React.FC = () => {
           </Paper>
 
           {/* Progress Timeline */}
-          <Paper elevation={0} sx={{ borderRadius: '18px', p: 4, mb: 4, boxShadow: '0 2px 12px #e5eaf1' }}>
+          <Paper elevation={0} sx={{ borderRadius: '18px', p: 4, mb: 4, boxShadow: '0 2px 12px #e5eaf1', position: 'relative' }}>
             <Typography fontWeight={700} color="#23263a" fontSize={20} mb={2}>Progress Timeline</Typography>
-            <Timeline position="right" sx={{ p: 0, m: 0 }}>
+            {/* Vertical Timeline Line (background) */}
+            <Box sx={{
+              position: 'absolute',
+              left: 32/2 - 2, // center of dot column
+              top: 56, // below the title
+              bottom: 32,
+              width: 4,
+              bgcolor: '#e5eaf1',
+              zIndex: 0,
+              borderRadius: 2
+            }} />
+            <Box>
               {getUpdatedTimelineSteps().map((step, idx) => (
-                <TimelineItem key={step.label}>
-                  <TimelineSeparator>
-                    {step.done ? (
-                      <TimelineDot color="success" sx={{ bgcolor: '#22c55e' }}>
-                        <CheckCircleIcon sx={{ color: '#fff' }} />
-                      </TimelineDot>
-                    ) : step.current ? (
-                      <TimelineDot color="primary" sx={{ bgcolor: '#2563eb' }}>
-                        <RadioButtonCheckedIcon sx={{ color: '#fff' }} />
-                      </TimelineDot>
-                    ) : (
-                      <TimelineDot color="grey" />
-                    )}
-                    {idx < timelineSteps.length - 1 && <TimelineConnector />}
-                  </TimelineSeparator>
-                  <TimelineContent sx={{ py: 1, px: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                        <Typography 
-                          fontWeight={step.current ? 900 : 700} 
-                          color={step.current ? '#2563eb' : step.done ? '#15803d' : '#6b7280'} 
-                          fontSize={17}
-                        >
-                          {step.label}
-                        </Typography>
-                        <Typography color="#6b7280" fontSize={15}>{step.desc}</Typography>
-                        {step.current && (
-                          <Typography color="#2563eb" fontSize={14} fontWeight={700}>
-                            Currently in progress
-                          </Typography>
-                        )}
-                      </Box>
-                      <Typography color="#b0b0b0" fontSize={14} ml={4} sx={{ minWidth: 90, textAlign: 'right' }}>{step.time}</Typography>
+                <Box key={step.label} sx={{ display: 'flex', alignItems: 'flex-start', mb: idx < timelineSteps.length - 1 ? 6 : 0, position: 'relative', zIndex: 1 }}>
+                  {/* Timeline Dot and Line */}
+                  <Box sx={{ width: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                    <Box sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: step.done ? '#22c55e' : step.current ? '#2563eb' : '#e5eaf1',
+                      border: `4px solid ${step.done ? '#22c55e' : step.current ? '#2563eb' : '#b0b0b0'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 2,
+                      marginTop: 0,
+                      marginBottom: 0
+                    }}>
+                      {step.done ? (
+                        <CheckCircleIcon sx={{ color: '#fff', fontSize: 16 }} />
+                      ) : step.current ? (
+                        <RadioButtonCheckedIcon sx={{ color: '#fff', fontSize: 16 }} />
+                      ) : null}
                     </Box>
-                  </TimelineContent>
-                </TimelineItem>
+                  </Box>
+                  {/* Step Content */}
+                  <Box sx={{ flex: 1, pl: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <Typography 
+                      fontWeight={step.current ? 900 : 700} 
+                      color={step.current ? '#2563eb' : step.done ? '#15803d' : '#6b7280'} 
+                      fontSize={17}
+                    >
+                      {step.label}
+                    </Typography>
+                    <Typography color="#6b7280" fontSize={15}>{step.desc}</Typography>
+                    {step.current && (
+                      <Typography color="#2563eb" fontSize={14} fontWeight={700}>
+                        Currently in progress
+                      </Typography>
+                    )}
+                  </Box>
+                  {/* Timestamp */}
+                  <Box sx={{ minWidth: 110, textAlign: 'right', pl: 2 }}>
+                    <Typography color="#b0b0b0" fontSize={14}>{step.time}</Typography>
+                  </Box>
+                </Box>
               ))}
-            </Timeline>
+            </Box>
           </Paper>
         </Box>
 

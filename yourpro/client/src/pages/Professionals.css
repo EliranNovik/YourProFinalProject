@@ -329,38 +329,55 @@
 
 .book-button,
 .message-button {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.85rem;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.08rem;
+  padding: 0.85rem 0;
+  width: 100%;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px #2563eb22;
 }
 
 .book-button {
   background: #2563eb;
-  color: white;
+  color: #fff;
   border: none;
 }
 
 .book-button:hover {
   background: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 4px 16px #2563eb33;
+}
+
+.book-button svg {
+  color: #fff;
+  transition: color 0.2s;
+}
+
+.book-button:hover svg {
+  color: #fff;
 }
 
 .message-button {
-  background: white;
-  color: #4b5563;
-  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #2563eb;
+  border: 2px solid #2563eb;
 }
 
 .message-button:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: #f3f4f6;
+  color: #1d4ed8;
+  border: 2px solid #1d4ed8;
+}
+
+.message-button svg {
+  color: #2563eb;
+  transition: color 0.2s;
+}
+
+.message-button:hover svg {
+  color: #1d4ed8;
 }
 
 /* No Results Styles */
@@ -572,6 +589,12 @@
 
   .action-buttons {
     flex-direction: column;
+  }
+
+  .book-button,
+  .message-button {
+    font-size: 1rem;
+    padding: 0.7rem 0;
   }
 
   .booking-modal {

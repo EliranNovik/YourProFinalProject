@@ -291,13 +291,14 @@
 }
 
 .book-button {
-  background-color: #0066cc;
+  background-color: #2563eb;
   color: white;
   border: none;
 }
 
 .book-button:hover {
-  background-color: #0052a3;
+  background-color: #1d4ed8;
+  color: white;
   transform: translateY(-1px);
 }
 
