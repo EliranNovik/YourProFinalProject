@@ -1,0 +1,324 @@
+.live-jobs-container {
+  max-width: 1280px;
+  margin: 40px auto;
+  padding: 0 40px 40px 40px;
+  background: #f8fafd;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(37,99,235,0.07);
+  position: relative;
+}
+
+.job-card {
+  background: #2563eb;
+  color: #fff;
+  border-radius: 18px 18px 0 0;
+  padding: 28px 28px 18px 28px;
+  box-shadow: 0 2px 12px #e5eaf1;
+  margin-bottom: 18px;
+}
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.job-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.job-id {
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.job-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.job-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px #2563eb22;
+}
+.user-name {
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+.user-id {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+.job-pay {
+  text-align: right;
+}
+.job-amount {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.job-hours {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+.job-location-row {
+  margin-bottom: 8px;
+  font-size: 1.05rem;
+  opacity: 0.95;
+}
+.job-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+.progress-label {
+  font-weight: 600;
+  opacity: 0.9;
+}
+.progress-count {
+  font-weight: 600;
+  opacity: 0.9;
+}
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: #e6eaf8;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+  border-radius: 8px;
+  transition: width 0.3s;
+}
+
+.steps-list {
+  background: #fff;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 2px 12px #e5eaf1;
+  padding: 24px 18px 18px 18px;
+}
+.step-card {
+  background: #f8fafd;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  padding: 18px 18px 12px 18px;
+  box-shadow: 0 1px 6px #e5eaf1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 2px solid transparent;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.step-card.completed {
+  background: #e8f6ed;
+  border-color: #22c55e33;
+}
+.step-card.active {
+  background: #eaf1fb;
+  border-color: #2563eb55;
+  box-shadow: 0 2px 12px #2563eb11;
+}
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+.step-label {
+  flex: 1;
+}
+.step-time {
+  font-size: 0.98rem;
+  color: #2563eb;
+  font-weight: 700;
+  margin-left: auto;
+}
+.step-icon {
+  font-size: 1.5rem !important;
+}
+.step-icon.completed {
+  color: #22c55e !important;
+}
+.step-icon.active {
+  color: #2563eb !important;
+}
+.step-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e5eaf1;
+  display: inline-block;
+  margin-right: 8px;
+}
+.step-actions {
+  display: flex;
+  gap: 12px;
+  margin: 10px 0 0 0;
+}
+.step-action-btn {
+  background: #f3f4f6;
+  color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.step-action-btn:hover {
+  background: #eaf1fb;
+  color: #1d4ed8;
+}
+.step-complete-btn {
+  margin-top: 12px;
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #22c55e22;
+  transition: background 0.2s;
+}
+.step-complete-btn:hover {
+  background: #16a34a;
+}
+@media (max-width: 1400px) {
+  .live-jobs-container {
+    max-width: 98vw;
+    padding: 0 12px 24px 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .live-jobs-container {
+    max-width: 100%;
+    padding: 0 8px 24px 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .live-jobs-container {
+    max-width: 100%;
+    padding: 0 2px 24px 2px;
+  }
+  .job-card, .steps-list {
+    padding: 16px 6px 12px 6px;
+  }
+}
+
+/* Sidebar scrollable */
+.live-jobs-sidebar {
+  overflow-y: auto;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  background: #fff;
+  border-right: 1.5px solid #e5eaf1;
+  width: 260px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30,41,59,0.18);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(37,99,235,0.18);
+  padding: 32px 28px 24px 28px;
+  min-width: 340px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.modal-content h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin-bottom: 8px;
+}
+.modal-content textarea {
+  width: 100%;
+  min-height: 80px;
+  font-size: 1.08rem;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px solid #e5eaf1;
+  background: #f8fafd;
+  margin-bottom: 10px;
+  resize: vertical;
+  transition: border 0.2s;
+}
+.modal-content textarea:focus {
+  outline: none;
+  border: 1.5px solid #2563eb;
+  background: #fff;
+}
+.modal-content button {
+  margin: 0 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  font-size: 1rem;
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 2px 8px #2563eb22;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.modal-content button:hover {
+  background: #1d4ed8;
+}
+.modal-content .close-btn {
+  background: #f3f4f6;
+  color: #2563eb;
+  margin-left: 8px;
+  box-shadow: none;
+}
+.modal-content .close-btn:hover {
+  background: #eaf1fb;
+  color: #1d4ed8;
+} 

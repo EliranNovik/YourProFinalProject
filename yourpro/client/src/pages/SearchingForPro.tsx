@@ -45,12 +45,11 @@ const SearchingForPro: React.FC = () => {
 
   const [freelancers, setFreelancers] = useState<DBFreelancer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<'pending' | 'accepted' | 'declined'>('pending');
-  const [current, setCurrent] = useState(0);
-  const [showCard, setShowCard] = useState(false);
   const [aiReport, setAiReport] = useState<{ report: string; timeFrame: string; costEstimate: string } | null>(null);
   const [aiReportError, setAiReportError] = useState<string | null>(null);
   const dispatchesCreatedRef = useRef(false);
+  const [acceptedFreelancer, setAcceptedFreelancer] = useState<DBFreelancer | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFreelancers = async () => {
@@ -97,47 +96,83 @@ const SearchingForPro: React.FC = () => {
   }, [jobtitle]);
 
   useEffect(() => {
-    // Only create dispatches if freelancers and aiReport are ready, and we haven't already created them
-    if (
-      freelancers.length > 0 &&
-      aiReport &&
-      !dispatchesCreatedRef.current
-    ) {
-      dispatchesCreatedRef.current = true; // Prevent future dispatches for this search
-
-      // Generate a single jobId for this job request
-      const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      // Deduplicate freelancers by user_id
-      const uniqueFreelancers = Array.from(
-        new Map(freelancers.map(f => [f.user_id, f])).values()
-      );
-      try {
-        const dispatchPromises = uniqueFreelancers.map(freelancer => {
-          return jobDispatchService.createJobDispatch({
-            jobId,
-            jobTitle: jobtitle,
-            location: freelancer.location || 'Unknown',
-            costEstimate: aiReport?.costEstimate || '$150-$300',
-            duration: aiReport?.timeFrame || '2-3 hours',
-            freelancerId: freelancer.user_id,
-            status: 'pending'
+    async function createJobAndDispatches() {
+      if (
+        freelancers.length > 0 &&
+        aiReport &&
+        !dispatchesCreatedRef.current
+      ) {
+        dispatchesCreatedRef.current = true;
+        const newJobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        setJobId(newJobId);
+        // Get current client user id
+        const { data: { user } } = await supabase.auth.getUser();
+        const clientId = user?.id;
+        // Use fallback for location (aiReport does not have location)
+        const jobLocation = 'Unknown'; // Or use a value from client input if available
+        const jobDescription = aiReport?.report || '';
+        // Insert ONE row into requests table (per job)
+        await supabase.from('requests').insert([{
+          job_id: newJobId,
+          client_id: clientId,
+          job_title: jobtitle,
+          description: jobDescription,
+          location: jobLocation,
+          status: 'open',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }]);
+        // Deduplicate freelancers by user_id
+        const uniqueFreelancers = Array.from(
+          new Map(freelancers.map(f => [f.user_id, f])).values()
+        );
+        try {
+          const dispatchPromises = uniqueFreelancers.map(freelancer => {
+            return jobDispatchService.createJobDispatch({
+              jobId: newJobId,
+              jobTitle: jobtitle,
+              location: freelancer.location || 'Unknown',
+              costEstimate: aiReport?.costEstimate || '$150-$300',
+              duration: aiReport?.timeFrame || '2-3 hours',
+              freelancerId: freelancer.user_id,
+              status: 'pending'
+            });
           });
-        });
-        Promise.all(dispatchPromises).then(results => {
-          console.log('Successfully created job dispatches:', results);
-        });
-      } catch (error) {
-        console.error('Error creating job dispatches:', error);
+          Promise.all(dispatchPromises).then(results => {
+            console.log('Successfully created job dispatches:', results);
+          });
+        } catch (error) {
+          console.error('Error creating job dispatches:', error);
+        }
       }
     }
+    createJobAndDispatches();
   }, [freelancers, aiReport, jobtitle]);
 
   useEffect(() => {
-    if (!loading) {
-      const timer = setTimeout(() => setShowCard(true), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [loading]);
+    if (!jobId) return;
+    const interval = setInterval(async () => {
+      const { data: request, error } = await supabase
+        .from('requests')
+        .select('freelancer_id, status')
+        .eq('job_id', jobId)
+        .single();
+      
+      if (request && request.freelancer_id && request.status === 'assigned') {
+        // Fetch freelancer profile
+        const { data: freelancerData } = await supabase
+          .from('freelancer_profiles')
+          .select('*')
+          .eq('user_id', request.freelancer_id)
+          .single();
+        
+        if (freelancerData) {
+          setAcceptedFreelancer(freelancerData);
+        }
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [jobId]);
 
   useEffect(() => {
     async function fetchAIReport() {
@@ -152,32 +187,67 @@ const SearchingForPro: React.FC = () => {
     fetchAIReport();
   }, [jobtitle]);
 
-  const handleAccept = () => {
-    setStatus('accepted');
-    setTimeout(() => {
-      // Generate a unique job ID using timestamp and random string
-      const jobId = `JOB-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const handleConfirmFreelancer = async () => {
+    if (!jobId || !acceptedFreelancer) return;
+    try {
+      // Update request status to 'confirmed'
+      const { error } = await supabase
+        .from('requests')
+        .update({ status: 'confirmed' })
+        .eq('job_id', jobId);
+      if (error) throw error;
+
+      // Insert into live_jobs for the assigned freelancer
+      const { data: { user } } = await supabase.auth.getUser();
+      const clientId = user?.id;
+      const jobLocation = 'Unknown'; // Or use a value from client input if available
+      const defaultStepStatus = [
+        { completed: false, time: null, note: null, photo: null },
+        { completed: false, time: null, note: null, photo: null },
+        { completed: false, time: null, note: null, photo: null },
+        { completed: false, time: null, note: null, photo: null },
+        { completed: false, time: null, note: null, photo: null },
+        { completed: false, time: null, note: null, photo: null }
+      ];
+      const { error: liveJobError } = await supabase.from('live_jobs').insert([
+        {
+          job_id: jobId,
+          freelancer_id: acceptedFreelancer.user_id,
+          client_id: clientId,
+          step_status: defaultStepStatus,
+          cost_estimate: aiReport?.costEstimate || '$150-$300',
+          duration: aiReport?.timeFrame || '2-3 hours',
+          job_title: jobtitle,
+          location: jobLocation,
+          ai_report: aiReport?.report || '',
+          created_at: new Date().toISOString()
+        }
+      ]);
+      if (liveJobError) {
+        alert('Failed to insert into live_jobs: ' + liveJobError.message);
+        return;
+      }
+
+      // Navigate to job in progress page with freelancer and AI report data
       navigate(`/job-in-progress/${jobId}`, {
         state: {
-          freelancer: freelancers[current],
-          aiReport,
-          jobtitle
+          freelancer: acceptedFreelancer,
+          aiReport: aiReport,
+          jobtitle: jobtitle
         }
       });
-    }, 800); // short delay for feedback
+    } catch (error) {
+      console.error('Error confirming freelancer:', error);
+      alert('Failed to confirm freelancer. Please try again.');
+    }
   };
-  const handleDecline = () => {
-    setStatus('declined');
-  };
-
-  const freelancer = freelancers[current];
 
   return (
     <div className="searching-for-pro-modern-layout">
       <div className="searching-center-content">
-        {/* Freelancer Card Section */}
+        {/* Loading/Searching State */}
         <div className="modern-centered-card">
-          {(loading || !showCard) && (
+          {(!acceptedFreelancer && (loading || freelancers.length > 0)) && (
             <>
               <div className="spinning-icon-wrapper">
                 <svg className="spinning-icon" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -190,73 +260,8 @@ const SearchingForPro: React.FC = () => {
               </div>
             </>
           )}
-          {showCard && !loading && (
-            <>
-              {freelancers.length === 0 && (
-                <div className="no-match-message">No matching freelancer found for "{jobtitle}".</div>
-              )}
-              {freelancers.length > 0 && status === 'pending' && freelancer && (
-                <div className="freelancer-card-mock big-modern modern-centered-card">
-                  <div style={{
-                    width: 140,
-                    height: 140,
-                    background: '#e5e7eb',
-                    borderRadius: '50%',
-                    marginBottom: 24,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 48,
-                    color: '#2563eb',
-                    overflow: 'hidden',
-                    border: '5px solid #fff',
-                    boxShadow: '0 4px 24px #2563eb22',
-                  }}>
-                    {freelancer.avatar_url
-                      ? <img src={freelancer.avatar_url} alt={freelancer.full_name || 'Freelancer'} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
-                      : <span role="img" aria-label="User">👤</span>
-                    }
-                  </div>
-                  <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#23263a', margin: '0 0 0.3rem 0', textAlign: 'center' }}>{freelancer.full_name || freelancer.professional_title}</h2>
-                  <div className="freelancer-title-mock" style={{ color: '#2563eb', fontWeight: 700, fontSize: '1.18rem', marginBottom: 4, textAlign: 'center', textDecoration: 'underline', cursor: 'pointer' }}>{freelancer.professional_title}</div>
-                  <div className="freelancer-location-mock" style={{ color: '#6b7280', fontSize: '1.08rem', marginBottom: 12, textAlign: 'center' }}>{freelancer.location}</div>
-                  <div className="freelancer-skills-mock" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', margin: '0.7rem 0 1.2rem 0' }}>
-                    {freelancer.skills?.map((skill, idx) => (
-                      <span key={idx} style={{
-                        background: '#22c55e',
-                        color: '#fff',
-                        borderRadius: 999,
-                        padding: '0.35rem 1.1rem',
-                        fontWeight: 700,
-                        fontSize: '0.98rem',
-                        letterSpacing: '0.2px',
-                        boxShadow: '0 2px 8px #22c55e22',
-                        display: 'inline-block',
-                      }}>{skill}</span>
-                    ))}
-                  </div>
-                  <div className="freelancer-rate-mock" style={{ color: '#15803d', fontWeight: 800, fontSize: '1.18rem', marginBottom: 10 }}>Hourly Rate: ${freelancer.hourly_rate}</div>
-                  <div className="freelancer-reviews-mock" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', margin: '0.7rem 0 0.2rem 0', fontSize: '1.18rem' }}>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i} className={i < Math.round(freelancer.rating || 0) ? 'star filled' : 'star'} style={{ color: i < Math.round(freelancer.rating || 0) ? '#fbbf24' : '#e5e7eb', fontSize: '1.35em', marginRight: 2, transition: 'color 0.18s' }}>★</span>
-                    ))}
-                    <span className="review-count" style={{ fontSize: '1.08rem', color: '#6b7280', fontWeight: 700, marginLeft: 10 }}>{freelancer.review_count || 0} reviews</span>
-                  </div>
-                  <div className="freelancer-actions-mock big-modern" style={{ display: 'flex', gap: '1.2rem', marginTop: '2.2rem', width: '100%', justifyContent: 'center' }}>
-                    <button className="accept-btn-mock big-modern" style={{ background: 'linear-gradient(90deg, #2563eb 60%, #1d4ed8 100%)', color: '#fff', border: 'none', padding: '1.2rem 3.2rem', borderRadius: 14, fontWeight: 900, fontSize: '1.25rem', cursor: 'pointer', boxShadow: '0 4px 16px #2563eb33', letterSpacing: '0.5px', transition: 'background 0.18s, box-shadow 0.18s, transform 0.18s' }} onClick={handleAccept}>Accept</button>
-                    <button className="decline-btn-mock big-modern" style={{ background: '#fff', color: '#23263a', border: '3px solid #e5e7eb', padding: '1.2rem 3.2rem', borderRadius: 14, fontWeight: 900, fontSize: '1.25rem', cursor: 'pointer', letterSpacing: '0.5px', transition: 'background 0.18s, color 0.18s, border 0.18s, transform 0.18s' }} onClick={handleDecline}>Decline</button>
-                  </div>
-                </div>
-              )}
-              {status === 'accepted' && (
-                <div className="request-status-message accepted big-modern">Request accepted! {freelancer?.professional_title} will contact you soon.</div>
-              )}
-              {status === 'declined' && (
-                <div className="request-status-message declined big-modern">Request declined. Please try another search.</div>
-              )}
-            </>
-          )}
         </div>
+
         {/* AI Job Report Section */}
         <div className="ai-job-report-modern">
           <div className="ai-job-report-title">
@@ -281,6 +286,45 @@ const SearchingForPro: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Accepted Freelancer Card */}
+      {acceptedFreelancer && (
+        <div className="accepted-freelancer-card">
+          <h2>Freelancer Accepted Your Job!</h2>
+          <div className="freelancer-info">
+            <img 
+              src={acceptedFreelancer.avatar_url || '/default-avatar.png'} 
+              alt={acceptedFreelancer.full_name || 'Freelancer'} 
+              className="freelancer-avatar"
+            />
+            <div className="freelancer-details">
+              <h3>{acceptedFreelancer.full_name || 'Professional'}</h3>
+              <p>{acceptedFreelancer.professional_title}</p>
+              <p>Location: {acceptedFreelancer.location}</p>
+              <p>Hourly Rate: ${acceptedFreelancer.hourly_rate}/hr</p>
+              {acceptedFreelancer.rating && (
+                <p>Rating: {acceptedFreelancer.rating} ({acceptedFreelancer.review_count} reviews)</p>
+              )}
+            </div>
+          </div>
+          <div className="action-buttons">
+            <button 
+              className="confirm-button"
+              onClick={handleConfirmFreelancer}
+            >
+              Confirm Freelancer
+            </button>
+            <button 
+              className="decline-button"
+              onClick={() => {
+                setAcceptedFreelancer(null);
+              }}
+            >
+              Decline
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

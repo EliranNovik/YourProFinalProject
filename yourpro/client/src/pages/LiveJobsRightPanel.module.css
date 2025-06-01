@@ -1,0 +1,367 @@
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 340px;
+  height: 100vh;
+  /* background: #f8fafd; */
+  background: transparent;
+  padding: 40px 32px 40px 0;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px #e5eaf133;
+  padding: 28px 24px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 0;
+}
+
+.cardIcon {
+  font-size: 26px;
+  margin-right: 2px;
+}
+
+.cardTitle {
+  font-size: 20px;
+  font-weight: 900;
+  color: #23263a;
+}
+
+.cardBody {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* AI Card */
+.aiCard {
+  border-left: 6px solid #a084fa;
+}
+.aiDescription {
+  font-size: 15px;
+  color: #7a869a;
+  margin-bottom: 10px;
+}
+.aiGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px 18px;
+  margin-top: 8px;
+}
+.gridLabel {
+  color: #7a869a;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.gridValue {
+  color: #23263a;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* Messages Card */
+.messagesCard {
+  border-left: 6px solid #2563eb;
+}
+.messagesPlaceholder {
+  color: #7a869a;
+  font-size: 15px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+/* Photos Card */
+.photosCard {
+  border-left: 6px solid #a259f7;
+}
+.photosPlaceholder {
+  color: #7a869a;
+  font-size: 15px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .rightPanel {
+    min-width: 100vw;
+    padding: 24px 8px 24px 8px;
+  }
+  .card {
+    padding: 18px 8px 14px 8px;
+  }
+}
+
+.analysisCard {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 4px 24px #e5eaf133;
+  padding: 28px 28px 22px 28px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.analysisHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 0;
+}
+
+.analysisIcon {
+  color: #a084fa;
+  font-size: 26px;
+  margin-right: 2px;
+}
+
+.analysisTitle {
+  font-size: 22px;
+  font-weight: 900;
+  color: #23263a;
+}
+
+.analysisUpdated {
+  margin-left: auto;
+  font-size: 15px;
+  color: #b0b0b0;
+  font-weight: 500;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e5eaf1;
+  margin: 10px 0 12px 0;
+}
+
+.requirementsTitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  color: #23263a;
+  text-align: center;
+}
+
+.requirementsDesc {
+  font-size: 16px;
+  color: #7a869a;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.analysisGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px 16px;
+  margin-top: 10px;
+}
+
+.analysisGridItem {
+  background: #f8fafd;
+  border-radius: 12px;
+  padding: 14px 10px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 120px;
+  min-height: 54px;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.costCell {
+  background: #fffbe7;
+  border: 1.5px solid #ffe6a0;
+  grid-column: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 54px;
+  margin-top: 2px;
+}
+
+.costLabel {
+  color: #b97a1a;
+}
+
+.costValue {
+  color: #b97a1a;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.quickActionsCard {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 4px 24px #e5eaf133;
+  padding: 24px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.quickActionsTitle {
+  font-size: 24px;
+  font-weight: 900;
+  color: #23263a;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  padding: 18px 24px;
+  border-top: 1.5px solid #f3f4f8;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.13s;
+}
+
+.actionRow:first-of-type {
+  border-top: none;
+}
+
+.actionIcon {
+  font-size: 24px;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.messageIcon {
+  color: #2563eb;
+}
+
+.callIcon {
+  color: #1e8c3a;
+}
+
+.photosIcon {
+  color: #a084fa;
+}
+
+.actionLabel {
+  font-size: 17px;
+  font-weight: 800;
+  margin-right: 10px;
+  min-width: 80px;
+  color: #23263a;
+}
+
+.actionDesc {
+  font-size: 15px;
+  color: #7a869a;
+  font-weight: 500;
+  margin-right: auto;
+}
+
+.actionArrow {
+  font-size: 22px;
+  color: #a084fa;
+  margin-left: 12px;
+  font-weight: 900;
+}
+
+.actionRowMessage {
+  background: #f5f8ff;
+}
+
+.actionRowCall {
+  background: #f8fafd;
+}
+
+.actionRowPhotos {
+  background: #f7f3ff;
+}
+
+.messengerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 32, 40, 0.32);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.messengerModal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px #23263a33;
+  width: 370px;
+  max-width: 95vw;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.messengerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafd;
+  padding: 18px 22px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #23263a;
+  border-bottom: 1.5px solid #e5eaf1;
+}
+
+.messengerCloseBtn {
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: #a084fa;
+  cursor: pointer;
+  font-weight: 900;
+  margin-left: 12px;
+  transition: color 0.15s;
+}
+.messengerCloseBtn:hover {
+  color: #2563eb;
+}
+
+.messengerBody {
+  flex: 1;
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.messengerPlaceholder {
+  color: #7a869a;
+  font-size: 16px;
+  text-align: center;
+} 

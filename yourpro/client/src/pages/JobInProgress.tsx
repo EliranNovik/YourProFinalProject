@@ -18,7 +18,8 @@ import CallIcon from '@mui/icons-material/Call';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
+import { supabase } from '../config/supabase';
 import styles from './JobInProgress.module.css';
 
 interface TimelineStep {
@@ -38,6 +39,7 @@ interface Message {
 
 const JobInProgress: React.FC = () => {
   const location = useLocation();
+  const { jobId } = useParams();
   const { freelancer, aiReport, jobtitle } = (location.state || {}) as any;
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(2); // Freelancer Arrived (index 2)
@@ -50,48 +52,47 @@ const JobInProgress: React.FC = () => {
     }
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [jobDetails, setJobDetails] = useState<any>(null);
 
-  // Fallback mock data if not present
-  const fallbackFreelancer = {
-    full_name: 'John Martinez',
-    professional_title: 'Licensed Electrician',
-    rating: 4.9,
-    review_count: 127,
-    avatar_url: '',
-    description: 'Experienced electrician specializing in residential installations. Licensed and insured with over 8 years of experience in electrical work.',
-    badges: ['Licensed Electrician', 'Insured', 'Background Checked', '8 years exp.'],
-    status: 'Arrived - Working',
-    location: 'At your location',
-  };
-  const fallbackAIReport = {
-    requirements: 'Client needs 3 pendant lights installed in kitchen island area with dimmer switch',
-    duration: '2–3 hours',
-    complexity: 'Medium',
-    materials: 'Pendant lights (provided), dimmer switch, electrical wire',
-    updated: 'Today, 11:45 AM',
-  };
+  useEffect(() => {
+    const fetchJobDetails = async () => {
+      if (!jobId) return;
+      
+      const { data, error } = await supabase
+        .from('requests')
+        .select('*')
+        .eq('job_id', jobId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching job details:', error);
+        return;
+      }
+      
+      setJobDetails(data);
+    };
 
-  const f = freelancer || fallbackFreelancer;
-  const ai = aiReport || fallbackAIReport;
+    fetchJobDetails();
+  }, [jobId]);
 
   // Define timeline steps
   const timelineSteps: TimelineStep[] = [
     { 
       label: 'Freelancer Assigned', 
-      desc: `${f.full_name} has been assigned to your job`, 
-      time: 'Yesterday, 4:15 PM',
+      desc: `${freelancer?.full_name} has been assigned to your job`, 
+      time: 'Just now',
       done: true
     },
     { 
       label: 'Booking Confirmed', 
       desc: 'Service request confirmed and scheduled', 
-      time: 'Yesterday, 3:22 PM',
+      time: 'Just now',
       done: true
     },
     { 
       label: 'Freelancer Arrived', 
       desc: 'Service provider is on-site and ready to begin', 
-      time: 'Today, 12:15 PM'
+      time: 'Now'
     },
     { 
       label: 'Work in Progress', 
@@ -101,12 +102,12 @@ const JobInProgress: React.FC = () => {
     { 
       label: 'Task Completed', 
       desc: 'Work completion and quality inspection', 
-      time: 'Estimated 2:15 PM'
+      time: 'Estimated soon'
     },
     { 
       label: 'Payment Done', 
       desc: 'Final payment processing and job closure', 
-      time: 'Estimated 2:30 PM'
+      time: 'After completion'
     }
   ];
 
@@ -119,11 +120,10 @@ const JobInProgress: React.FC = () => {
     }));
   };
 
-  const jobTitle = jobtitle ? `Job with ${f.full_name}` : 'Job In Progress';
-  const jobId = 'JOB-2025-8471';
-  const jobDate = 'Tuesday, May 27';
-  const jobTime = '19:12';
-  const estCompletion = '2:30 PM';
+  const jobTitle = jobtitle ? `Job with ${freelancer?.full_name}` : 'Job In Progress';
+  const jobDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const jobTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const estCompletion = aiReport?.timeFrame || '2-3 hours';
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -157,6 +157,14 @@ const JobInProgress: React.FC = () => {
     }
   };
 
+  if (!freelancer || !aiReport) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>Loading job details...</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ minHeight: '100vh', pb: 6 }}>
       {/* Header */}
@@ -189,36 +197,33 @@ const JobInProgress: React.FC = () => {
           <Paper elevation={0} sx={{ borderRadius: '18px', p: 4, mb: 4, boxShadow: '0 2px 12px #e5eaf1' }}>
             <Typography fontWeight={700} color="#23263a" fontSize={20} mb={2}>Service Professional</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Avatar src={f.avatar_url} sx={{ width: 80, height: 80, fontSize: 32, bgcolor: '#f3f4f6', color: '#23263a', boxShadow: '0 2px 12px #e5eaf1' }}>{f.full_name?.split(' ').map((n: string) => n[0]).join('')}</Avatar>
+              <Avatar src={freelancer.avatar_url} sx={{ width: 80, height: 80, fontSize: 32, bgcolor: '#f3f4f6', color: '#23263a', boxShadow: '0 2px 12px #e5eaf1' }}>{freelancer.full_name?.split(' ').map((n: string) => n[0]).join('')}</Avatar>
               <Box sx={{ flex: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography fontWeight={900} fontSize={22} color="#23263a">{f.full_name}</Typography>
-                  <Chip icon={<StarIcon sx={{ color: '#fbbf24', fontSize: 20 }} />} label={`${f.rating || 0} (${f.review_count || 0})`} sx={{ bgcolor: '#fef9c3', color: '#23263a', fontWeight: 700, fontSize: 16, borderRadius: '12px', ml: 1 }} />
+                  <Typography fontWeight={900} fontSize={22} color="#23263a">{freelancer.full_name}</Typography>
+                  <Chip icon={<StarIcon sx={{ color: '#fbbf24', fontSize: 20 }} />} label={`${freelancer.rating || 0} (${freelancer.review_count || 0})`} sx={{ bgcolor: '#fef9c3', color: '#23263a', fontWeight: 700, fontSize: 16, borderRadius: '12px', ml: 1 }} />
                 </Box>
-                <Typography color="#6b7280" fontWeight={700} fontSize={17} mb={1}>{f.professional_title}</Typography>
-                <Typography color="#23263a" fontWeight={500} fontSize={15} mb={1}>{f.description}</Typography>
+                <Typography color="#6b7280" fontWeight={700} fontSize={17} mb={1}>{freelancer.professional_title}</Typography>
+                <Typography color="#23263a" fontWeight={500} fontSize={15} mb={1}>{freelancer.description}</Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-                  {(f.badges || []).map((b: string, i: number) => (
-                    <Chip key={i} label={b} sx={{ bgcolor: '#f1f5f9', color: '#2563eb', fontWeight: 700, fontSize: 14, borderRadius: '10px' }} />
+                  {(freelancer.skills || []).map((skill: string, i: number) => (
+                    <Chip key={i} label={skill} sx={{ bgcolor: '#f1f5f9', color: '#2563eb', fontWeight: 700, fontSize: 14, borderRadius: '10px' }} />
                   ))}
                 </Box>
                 <Grid container spacing={2} sx={{ mt: 2 }}>
                   <Grid item xs={12} sm={6}>
                     <Paper sx={{ bgcolor: '#e8f6ed', borderRadius: '12px', p: 2, boxShadow: 'none' }}>
                       <Typography fontWeight={700} color="#15803d" fontSize={16}>Status</Typography>
-                      <Typography color="#15803d" fontWeight={600} fontSize={15}>{f.status || 'Arrived - Working'}</Typography>
+                      <Typography color="#15803d" fontWeight={600} fontSize={15}>Arrived - Working</Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Paper sx={{ bgcolor: '#eaf1fb', borderRadius: '12px', p: 2, boxShadow: 'none' }}>
                       <Typography fontWeight={700} color="#2563eb" fontSize={16}>Location</Typography>
-                      <Typography color="#2563eb" fontWeight={600} fontSize={15}>{f.location || 'At your location'}</Typography>
+                      <Typography color="#2563eb" fontWeight={600} fontSize={15}>{freelancer.location || 'At your location'}</Typography>
                     </Paper>
                   </Grid>
                 </Grid>
-              </Box>
-              <Box sx={{ alignSelf: 'flex-start' }}>
-                <Button variant="text" sx={{ minWidth: 0, p: 1, color: '#6b7280' }}>⋮</Button>
               </Box>
             </Box>
           </Paper>
@@ -229,8 +234,8 @@ const JobInProgress: React.FC = () => {
             {/* Vertical Timeline Line (background) */}
             <Box sx={{
               position: 'absolute',
-              left: 32/2 - 2, // center of dot column
-              top: 56, // below the title
+              left: 32/2 - 2,
+              top: 56,
               bottom: 32,
               width: 4,
               bgcolor: '#e5eaf1',
@@ -295,51 +300,31 @@ const JobInProgress: React.FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
               <BoltIcon sx={{ color: '#a259f7', fontSize: 32 }} />
               <Typography fontWeight={900} color="#23263a" fontSize={20}>AI Job Analysis</Typography>
-              <Typography color="#b0b0b0" fontSize={14} ml="auto">Updated: {ai.updated || 'Just now'}</Typography>
+              <Typography color="#b0b0b0" fontSize={14} ml="auto">Updated: Just now</Typography>
             </Box>
             <Divider sx={{ mb: 2 }} />
             <Typography fontWeight={700} color="#23263a" fontSize={16} mb={1}>Job Requirements</Typography>
-            <Typography color="#6b7280" fontSize={15} mb={2}>{ai.report || ai.requirements}</Typography>
+            <Typography color="#6b7280" fontSize={15} mb={2}>{aiReport.report}</Typography>
             <Grid container spacing={2} mb={2}>
               <Grid item xs={12}>
                 <Paper sx={{ bgcolor: '#f6f8fa', borderRadius: '10px', p: 2, boxShadow: 'none' }}>
                   <Typography fontWeight={700} color="#23263a" fontSize={15}>Estimated Duration</Typography>
-                  <Typography color="#23263a" fontWeight={600} fontSize={15}>{ai.timeFrame || ai.duration}</Typography>
+                  <Typography color="#23263a" fontWeight={600} fontSize={15}>{aiReport.timeFrame}</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6}>
                 <Paper sx={{ bgcolor: '#fef9c3', borderRadius: '10px', p: 2, boxShadow: 'none' }}>
                   <Typography fontWeight={700} color="#b45309" fontSize={15}>Estimated Cost</Typography>
-                  <Typography color="#b45309" fontWeight={600} fontSize={15}>{ai.costEstimate || 'Not specified'}</Typography>
+                  <Typography color="#b45309" fontWeight={600} fontSize={15}>{aiReport.costEstimate}</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6}>
                 <Paper sx={{ bgcolor: '#f6f8fa', borderRadius: '10px', p: 2, boxShadow: 'none' }}>
                   <Typography fontWeight={700} color="#23263a" fontSize={15}>Job Type</Typography>
-                  <Typography color="#23263a" fontWeight={600} fontSize={15}>{ai.jobTitle || 'Not specified'}</Typography>
+                  <Typography color="#23263a" fontWeight={600} fontSize={15}>{jobtitle}</Typography>
                 </Paper>
               </Grid>
             </Grid>
-            {ai.keywords && ai.keywords.length > 0 && (
-              <Box sx={{ mt: 2 }}>
-                <Typography fontWeight={700} color="#23263a" fontSize={15} mb={1}>Key Details</Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {ai.keywords.map((keyword: string, index: number) => (
-                    <Chip
-                      key={index}
-                      label={keyword}
-                      sx={{
-                        bgcolor: '#f1f5f9',
-                        color: '#2563eb',
-                        fontWeight: 600,
-                        fontSize: 14,
-                        borderRadius: '8px'
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            )}
           </Paper>
 
           {/* Quick Actions */}
@@ -387,14 +372,14 @@ const JobInProgress: React.FC = () => {
           gap: 2
         }}>
           <Avatar 
-            src={f.avatar_url} 
+            src={freelancer.avatar_url} 
             sx={{ width: 40, height: 40, bgcolor: '#f3f4f6', color: '#23263a' }}
           >
-            {f.full_name?.split(' ').map((n: string) => n[0]).join('')}
+            {freelancer.full_name?.split(' ').map((n: string) => n[0]).join('')}
           </Avatar>
           <Box sx={{ flex: 1 }}>
-            <Typography fontWeight={700} fontSize={16}>{f.full_name}</Typography>
-            <Typography color="#6b7280" fontSize={14}>{f.professional_title}</Typography>
+            <Typography fontWeight={700} fontSize={16}>{freelancer.full_name}</Typography>
+            <Typography color="#6b7280" fontSize={14}>{freelancer.professional_title}</Typography>
           </Box>
           <IconButton onClick={() => setIsChatOpen(false)} size="small">
             <CloseIcon />
@@ -426,10 +411,10 @@ const JobInProgress: React.FC = () => {
               >
                 {message.sender === 'freelancer' && (
                   <Avatar 
-                    src={f.avatar_url} 
+                    src={freelancer.avatar_url} 
                     sx={{ width: 32, height: 32, bgcolor: '#f3f4f6', color: '#23263a' }}
                   >
-                    {f.full_name?.split(' ').map((n: string) => n[0]).join('')}
+                    {freelancer.full_name?.split(' ').map((n: string) => n[0]).join('')}
                   </Avatar>
                 )}
                 <Box>

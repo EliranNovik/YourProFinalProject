@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jobDispatchService, JobDispatch } from '../services/jobDispatchService';
 import JobNotificationToast from './JobNotificationToast';
+import { supabase } from '../config/supabase';
 
 interface JobDispatchListenerProps {
   freelancerId: string;
@@ -23,13 +24,24 @@ const JobDispatchListener: React.FC<JobDispatchListenerProps> = ({ freelancerId 
       try {
         const pendingDispatches = await jobDispatchService.getPendingJobDispatches(freelancerId);
         console.log('Fetched pending dispatches:', pendingDispatches.map(j => ({id: j.id, jobId: j.jobId, status: j.status})));
-        const nextJob = (pendingDispatches || []).find(
-          (job) => job.status === 'pending' && job.jobId && !declinedJobIdsRef.current.has(job.jobId)
-        );
-        if (nextJob) {
-          setCurrentDispatch(nextJob);
-          setShowToast(true);
+        // For each dispatch, check if the job is still open
+        for (const job of pendingDispatches) {
+          const { data: request } = await supabase
+            .from('requests')
+            .select('status,freelancer_id')
+            .eq('job_id', job.jobId)
+            .single();
+          if (request && (request.status !== 'open' || request.freelancer_id)) {
+            continue; // skip jobs that are already assigned
+          }
+          if (job.status === 'pending' && job.jobId && !declinedJobIdsRef.current.has(job.jobId)) {
+            setCurrentDispatch(job);
+            setShowToast(true);
+            return;
+          }
         }
+        setCurrentDispatch(null);
+        setShowToast(false);
       } catch (error) {
         console.error('Error fetching pending dispatches:', error);
       }
@@ -41,8 +53,16 @@ const JobDispatchListener: React.FC<JobDispatchListenerProps> = ({ freelancerId 
 
     const subscription = jobDispatchService.subscribeToJobDispatches(
       freelancerId,
-      (dispatch) => {
-        console.log('Received new dispatch in subscription:', dispatch.id, dispatch.jobId, dispatch.status);
+      async (dispatch) => {
+        // Check if the job is still open
+        const { data: request } = await supabase
+          .from('requests')
+          .select('status,freelancer_id')
+          .eq('job_id', dispatch.jobId)
+          .single();
+        if (request && (request.status !== 'open' || request.freelancer_id)) {
+          return;
+        }
         if (dispatch.status === 'pending' && dispatch.jobId && !declinedJobIdsRef.current.has(dispatch.jobId)) {
           setCurrentDispatch(dispatch);
           setShowToast(true);
@@ -62,13 +82,32 @@ const JobDispatchListener: React.FC<JobDispatchListenerProps> = ({ freelancerId 
 
   const handleAcceptJob = async () => {
     if (!currentDispatch) return;
-
     try {
-      await jobDispatchService.updateJobDispatchStatus(currentDispatch.id, 'accepted');
-      setShowToast(false);
-      navigate(`/job-in-progress/${currentDispatch.id}`);
+      const { data, error } = await supabase.rpc('accept_job', {
+        in_job_id: currentDispatch.jobId,
+        in_freelancer_id: freelancerId
+      });
+      if (data === 'accepted') {
+        setShowToast(false);
+        navigate('/live-jobs', {
+          state: {
+            jobId: currentDispatch.jobId,
+            jobTitle: currentDispatch.jobTitle,
+            location: currentDispatch.location,
+            costEstimate: currentDispatch.costEstimate,
+            duration: currentDispatch.duration
+          }
+        });
+      } else if (data === 'already_taken') {
+        setShowToast(false);
+        alert('Job already taken by another freelancer.');
+      } else if (error) {
+        console.error('Error accepting job:', error);
+        alert('An error occurred. Please try again.');
+      }
     } catch (error) {
       console.error('Error accepting job:', error);
+      alert('An error occurred. Please try again.');
     }
   };
 

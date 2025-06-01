@@ -33,6 +33,7 @@ import LoginProfile from './pages/LoginProfile';
 import CompleteFreelancerProfile from './pages/CompleteFreelancerProfile';
 import SearchingForPro from './pages/SearchingForPro';
 import JobInProgress from './pages/JobInProgress';
+import LiveJobs from './pages/LiveJobs';
 
 const theme = createTheme({
   palette: {
@@ -81,6 +82,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/complete-freelancer-profile" element={<CompleteFreelancerProfile />} />
         <Route path="/searching-for-pro" element={<SearchingForPro />} />
         <Route path="/job-in-progress/:jobId" element={<JobInProgress />} />
+        <Route path="/live-jobs" element={<LiveJobs />} />
       </Routes>
     </ThemeProvider>
   );
