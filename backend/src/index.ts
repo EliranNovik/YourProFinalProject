@@ -15,7 +15,14 @@ const app = express();
 const port = process.env.PORT || 3002;
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+  'https://yourprofinalproject.onrender.com', // Production frontend
+  'http://localhost:3000' // Local development
+];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json());
 
 const upload = multer({ dest: 'uploads/' });
