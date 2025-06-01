@@ -43,6 +43,8 @@ const AILoader = () => (
   </div>
 );
 
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '/api';
+
 const AISearchBar: React.FC<AISearchBarProps> = ({ onSearch, inputRef, highlight }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestion, setSuggestion] = useState<string | null>(null);
@@ -109,7 +111,7 @@ const AISearchBar: React.FC<AISearchBarProps> = ({ onSearch, inputRef, highlight
       try {
         const formData = new FormData();
         formData.append('image', file);
-        const response = await fetch('http://localhost:3002/api/ai-image-suggestion', {
+        const response = await fetch(`${API_BASE_URL}/api/ai-image-suggestion`, {
           method: 'POST',
           body: formData,
         });

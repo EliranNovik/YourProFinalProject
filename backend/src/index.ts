@@ -10,7 +10,6 @@ import fetch from 'node-fetch';
 
 // Load environment variables
 dotenv.config();
-console.log('Loaded OPENAI_API_KEY:', process.env.OPENAI_API_KEY);
 
 const app = express();
 const port = process.env.PORT || 3002;
