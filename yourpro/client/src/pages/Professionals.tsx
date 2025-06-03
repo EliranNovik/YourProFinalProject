@@ -79,6 +79,12 @@ const Professionals: React.FC = () => {
   const [dbFreelancers, setDbFreelancers] = useState<DBFreelancer[]>([]);
   const [selectedDbFreelancer, setSelectedDbFreelancer] = useState<DBFreelancer | null>(null);
   const [showDbFreelancerModal, setShowDbFreelancerModal] = useState(false);
+  const [locationFilter, setLocationFilter] = useState('');
+  const [locationInput, setLocationInput] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  const [minRate, setMinRate] = useState('');
+  const [maxRate, setMaxRate] = useState('');
+  const [starFilter, setStarFilter] = useState('');
 
   // Combine and randomize filtered results
   const combinedResults = React.useMemo(() => {
@@ -529,7 +535,7 @@ const Professionals: React.FC = () => {
 
   const renderFreelancerCard = (freelancer: Freelancer) => (
     <Link to={`/freelancer/${freelancer.id}`} key={freelancer.id} className="freelancer-card-link">
-      <div className="freelancer-card">
+      <div className="freelancer-card" style={{ height: 950, width: 600, maxWidth: '95%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', margin: '0 auto' }}>
         <div className="freelancer-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className={`availability-badge ${getAvailabilityClass(freelancer.availableHours)}`} style={{ marginBottom: '0.5rem' }}>
@@ -562,28 +568,32 @@ const Professionals: React.FC = () => {
               ))}
             </div>
           </div>
-          {/* Packages Section */}
-          <div className="packages-section" style={{ margin: '18px 0' }}>
-            <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: '#2563eb' }}>Packages</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {(freelancer.packages || []).map(pkg => (
-                <div key={pkg.id} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, background: '#f8fafc', marginBottom: 6 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, color: '#2563eb', fontSize: 16 }}>{pkg.name}</span>
-                    <span style={{ fontWeight: 700, color: '#059669', fontSize: 16 }}>${pkg.price}</span>
-                    <span style={{ color: '#888', fontSize: 14 }}>{pkg.timeline}</span>
-                  </div>
-                  <div style={{ color: '#374151', fontSize: 15, marginBottom: 6 }}>{pkg.description}</div>
-                  <ul style={{ margin: '0 0 0 1.2rem', padding: 0 }}>
-                    {(pkg.features || []).map((feature, i) => (
-                      <li key={i} style={{ color: '#059669', fontSize: 15, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 16 }}>✔</span> {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+          <div className="package-buttons" style={{ display: 'flex', gap: 10, margin: '18px 0', justifyContent: 'center' }}>
+            {freelancer.packages.map((pkg) => (
+              <Button
+                key={pkg.id}
+                variant="outlined"
+                className={`package-button ${pkg.name.toLowerCase()}`}
+                onClick={e => { e.preventDefault(); handlePackageClick('freelancer', freelancer.id.toString(), freelancer.name, pkg); }}
+                style={{ minWidth: 90, fontWeight: 700, fontSize: 15 }}
+              >
+                {pkg.name}
+              </Button>
+            ))}
+          </div>
+          {/* Package Details Section (scrollable if needed) */}
+          <div className="card-packages-details" style={{ maxHeight: 110, overflowY: 'auto', marginBottom: 10 }}>
+            {freelancer.packages.map((pkg) => (
+              <div key={pkg.id} style={{ marginBottom: 8, border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, background: '#f9fafb' }}>
+                <div style={{ fontWeight: 700, color: '#2563eb', fontSize: 15 }}>{pkg.name} <span style={{ color: '#059669', fontWeight: 600, fontSize: 14 }}>${pkg.price}</span> <span style={{ color: '#374151', fontSize: 13 }}>({pkg.timeline})</span></div>
+                <div style={{ fontSize: 13, color: '#374151', marginBottom: 4 }}>{pkg.description}</div>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {pkg.features.map((feature, i) => (
+                    <li key={i} style={{ fontSize: 12, color: '#374151' }}>{feature}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
           <div className="info-section">
             <div className="info-item">
@@ -593,18 +603,6 @@ const Professionals: React.FC = () => {
               </svg>
               <span>{freelancer.hourlyRate}/hr</span>
             </div>
-          </div>
-          <div className="package-buttons">
-            {freelancer.packages.map((pkg) => (
-              <Button
-                key={pkg.id}
-                variant="outlined"
-                className={`package-button ${pkg.name.toLowerCase()}`}
-                onClick={e => { e.preventDefault(); handlePackageClick('freelancer', freelancer.id.toString(), freelancer.name, pkg); }}
-              >
-                {pkg.name}
-              </Button>
-            ))}
           </div>
           <div className="action-buttons">
             <Button
@@ -780,15 +778,73 @@ const Professionals: React.FC = () => {
     };
   }
 
+  // Get unique locations from all freelancers (mock + db)
+  const allFreelancers = [...FREELANCERS, ...dbFreelancers.map(mapDbFreelancerToMock)];
+  const uniqueLocations = Array.from(new Set(allFreelancers.map(f => f.location).filter(Boolean)));
+  const uniqueRatings = [5, 4.5, 4, 3.5, 3];
+
+  // Update location suggestions as user types
+  useEffect(() => {
+    if (!locationInput) {
+      setLocationSuggestions([]);
+      return;
+    }
+    const matches = uniqueLocations.filter(loc => loc.toLowerCase().includes(locationInput.toLowerCase()));
+    setLocationSuggestions(matches.slice(0, 6));
+  }, [locationInput, uniqueLocations]);
+
+  // Filtering logic
+  const applyFilters = (freelancers: Freelancer[]) => {
+    return freelancers.filter(f => {
+      // Location filter
+      if (locationFilter && f.location !== locationFilter) return false;
+      // Hourly rate filter
+      const rateNum = parseInt((f.hourlyRate || '').replace(/[^\d]/g, ''));
+      if (minRate && (!rateNum || rateNum < parseInt(minRate))) return false;
+      if (maxRate && (!rateNum || rateNum > parseInt(maxRate))) return false;
+      // Star filter
+      if (starFilter && (!f.rating || f.rating < parseFloat(starFilter))) return false;
+      return true;
+    });
+  };
+
+  // Apply filters to both mock and db freelancers
+  const filteredMockFreelancers = applyFilters(FREELANCERS);
+  const filteredDbFreelancers = applyFilters(dbFreelancers.map(mapDbFreelancerToMock));
+
   return (
     <div className="with-navbar-padding">
       <div className="professionals-container">
         <div className="search-section">
           <h1>Find Professionals</h1>
-          <Paper elevation={4} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 4, maxWidth: 600, mx: 'auto', mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#fff', position: 'relative' }}>
-            <Box component="form" onSubmit={e => { e.preventDefault(); handleSearch(); }} sx={{ display: 'flex', gap: 2, width: '100%' }}>
+          <Box sx={{
+            p: { xs: 2, sm: 3 },
+            borderRadius: 3,
+            maxWidth: 1200,
+            width: '100%',
+            mx: 'auto',
+            mb: 3,
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+            <form onSubmit={e => { e.preventDefault(); handleSearch(); }}
+              style={{
+                display: 'flex',
+                flexWrap: 'nowrap',
+                gap: 12,
+                width: '100%',
+                alignItems: 'center',
+                marginBottom: 0,
+                justifyContent: 'center',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+              }}>
               <TextField
-                fullWidth
                 variant="outlined"
                 placeholder="Search by skills, expertise, or industry..."
                 value={searchQuery}
@@ -798,19 +854,139 @@ const Professionals: React.FC = () => {
                     <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
                   ),
                 }}
-                sx={{ background: '#fff', borderRadius: 2 }}
+                sx={{
+                  background: '#f7f8fa',
+                  borderRadius: 2.5,
+                  border: '1px solid #e5e7eb',
+                  boxShadow: 'none',
+                  minWidth: 250,
+                  maxWidth: 400,
+                  flex: '0 0 400px',
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                  '&:hover': { background: '#f1f3f6' },
+                  transition: 'background 0.2s',
+                }}
               />
+              <Box sx={{ position: 'relative', minWidth: 150, maxWidth: 170, flex: '0 0 150px' }}>
+                <TextField
+                  label="Location"
+                  value={locationInput}
+                  onChange={e => {
+                    setLocationInput(e.target.value);
+                    setLocationFilter('');
+                  }}
+                  sx={{
+                    background: '#f7f8fa',
+                    borderRadius: 2.5,
+                    border: '1px solid #e5e7eb',
+                    boxShadow: 'none',
+                    width: '100%',
+                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                    '&:hover': { background: '#f1f3f6' },
+                    transition: 'background 0.2s',
+                  }}
+                  autoComplete="off"
+                />
+                {locationInput && locationSuggestions.length > 0 && (
+                  <Box sx={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e1e1e1', borderRadius: 2, mt: 0.5, boxShadow: 3, zIndex: 1000 }}>
+                    {locationSuggestions.map((loc, idx) => (
+                      <Box
+                        key={loc}
+                        sx={{ p: 1.2, cursor: 'pointer', textAlign: 'left', '&:hover': { background: '#f5f7fa' } }}
+                        onClick={() => {
+                          setLocationInput(loc);
+                          setLocationFilter(loc);
+                          setLocationSuggestions([]);
+                        }}
+                      >
+                        {loc}
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+              <TextField
+                label="Min Rate ($)"
+                type="number"
+                value={minRate}
+                onChange={e => setMinRate(e.target.value)}
+                sx={{
+                  minWidth: 90,
+                  maxWidth: 110,
+                  flex: '0 0 90px',
+                  background: '#f7f8fa',
+                  borderRadius: 2.5,
+                  border: '1px solid #e5e7eb',
+                  boxShadow: 'none',
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                  '&:hover': { background: '#f1f3f6' },
+                  transition: 'background 0.2s',
+                }}
+              />
+              <TextField
+                label="Max Rate ($)"
+                type="number"
+                value={maxRate}
+                onChange={e => setMaxRate(e.target.value)}
+                sx={{
+                  minWidth: 90,
+                  maxWidth: 110,
+                  flex: '0 0 90px',
+                  background: '#f7f8fa',
+                  borderRadius: 2.5,
+                  border: '1px solid #e5e7eb',
+                  boxShadow: 'none',
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                  '&:hover': { background: '#f1f3f6' },
+                  transition: 'background 0.2s',
+                }}
+              />
+              <TextField
+                select
+                label="Review Stars"
+                value={starFilter}
+                onChange={e => setStarFilter(e.target.value)}
+                sx={{
+                  minWidth: 100,
+                  maxWidth: 120,
+                  flex: '0 0 100px',
+                  background: '#f7f8fa',
+                  borderRadius: 2.5,
+                  border: '1px solid #e5e7eb',
+                  boxShadow: 'none',
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                  '&:hover': { background: '#f1f3f6' },
+                  transition: 'background 0.2s',
+                }}
+              >
+                <MenuItem value="">All Ratings</MenuItem>
+                {uniqueRatings.map(r => (
+                  <MenuItem key={r} value={r}>{r}+</MenuItem>
+                ))}
+              </TextField>
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
                 size="large"
-                sx={{ borderRadius: 2, px: 4, fontWeight: 600, boxShadow: 2, textTransform: 'none' }}
+                sx={{
+                  borderRadius: 2.5,
+                  px: 4,
+                  fontWeight: 600,
+                  boxShadow: 'none',
+                  textTransform: 'none',
+                  height: 48,
+                  background: '#2563eb',
+                  '&:hover': { background: '#1746a0' },
+                  fontSize: 17,
+                  minWidth: 120,
+                  flex: '0 0 120px',
+                }}
                 endIcon={<SearchIcon />}
               >
                 Search
               </Button>
-            </Box>
+            </form>
             {searchSuggestions.length > 0 && searchQuery && (
               <Box sx={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e1e1e1', borderRadius: 2, mt: 1, boxShadow: 3, zIndex: 1000 }}>
                 {searchSuggestions.map((suggestion, index) => (
@@ -829,14 +1005,18 @@ const Professionals: React.FC = () => {
                 ))}
               </Box>
             )}
-          </Paper>
+          </Box>
         </div>
 
-        <div className="professionals-grid">
-          {combinedResults.length > 0 ? (
-            combinedResults.map(({ type, data }) => (
-              type === 'freelancer' ? renderFreelancerCard(data) : renderCompanyCard(data))
-            )
+        <div className="professionals-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '40px',
+          maxWidth: 900,
+          margin: '0 auto',
+        }}>
+          {filteredMockFreelancers.concat(filteredDbFreelancers).length > 0 ? (
+            filteredMockFreelancers.concat(filteredDbFreelancers).map(f => renderFreelancerCard(f))
           ) : (
             <div className="no-results">
               <h3>No professionals found matching your search criteria</h3>
@@ -880,15 +1060,6 @@ const Professionals: React.FC = () => {
 
         {renderBookingModal()}
         {renderThankYouModal()}
-
-        <h2 style={{ color: '#2563eb', fontWeight: 900, marginBottom: 18 }}>Freelancers</h2>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, marginBottom: 32 }}>
-          {dbFreelancers.map(f => (
-            <Link to={`/freelancer/${f.user_id}`} key={f.user_id} className="freelancer-card-link">
-              {renderFreelancerCard(mapDbFreelancerToMock(f))}
-            </Link>
-          ))}
-        </div>
       </div>
     </div>
   );
