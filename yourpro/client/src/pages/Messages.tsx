@@ -278,7 +278,9 @@ const Messages: React.FC = () => {
           </div>
           <div className="conversations-list">
             {filteredConversations.map(conv => {
-              const participant = conv.participants[0];
+              const participant = conv.participants.find(
+                (p) => p.id !== currentUser?.id
+              ) || conv.participants[0];
               return (
                 <div
                   key={conv.id}

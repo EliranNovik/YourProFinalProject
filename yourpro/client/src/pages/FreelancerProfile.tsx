@@ -17,6 +17,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import NotesIcon from '@mui/icons-material/Notes';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
+import { supabase } from '../config/supabase';
 
 // Import the FREELANCERS array from Freelancers.tsx
 import { Freelancer, FREELANCERS, ServicePackage } from './Freelancers';
@@ -49,12 +50,93 @@ const TIME_SLOTS = generateTimeSlots();
 const FreelancerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  // Find the freelancer based on the ID from the URL
-  const freelancer = FREELANCERS.find((f: Freelancer) => f.id === Number(id)) || FREELANCERS[0];
+  const [loading, setLoading] = useState(false);
+  const [dbFreelancer, setDbFreelancer] = useState<Freelancer | null>(null);
 
+  // Find the freelancer based on the ID from the URL
+  const freelancer = FREELANCERS.find((f: Freelancer) => String(f.id) === String(id));
+
+  // Helper to map DB freelancer to mock Freelancer shape
+  function mapDbFreelancerToMock(f: any): Freelancer {
+    let skills: string[] = [];
+    if (Array.isArray(f.skills)) {
+      skills = f.skills;
+    } else if (typeof f.skills === 'string') {
+      skills = (f.skills as string).split(',').map((s: string) => s.trim()).filter(Boolean);
+    }
+    let languages: string[] = [];
+    if (Array.isArray(f.languages)) {
+      languages = f.languages;
+    } else if (typeof f.languages === 'string') {
+      languages = (f.languages as string).split(',').map((l: string) => l.trim()).filter(Boolean);
+    }
+    // Default packages for DB freelancers
+    const defaultPackages: ServicePackage[] = [
+      {
+        id: 'basic',
+        name: 'Basic',
+        description: 'A basic package for small projects',
+        price: 50,
+        timeline: '1-2 weeks',
+        features: ['Feature 1', 'Feature 2']
+      },
+      {
+        id: 'pro',
+        name: 'Pro',
+        description: 'A comprehensive package for medium-sized projects',
+        price: 100,
+        timeline: '2-4 weeks',
+        features: ['Feature 3', 'Feature 4']
+      },
+      {
+        id: 'premium',
+        name: 'Premium',
+        description: 'A premium package for large-scale projects',
+        price: 150,
+        timeline: '4-6 weeks',
+        features: ['Feature 5', 'Feature 6']
+      }
+    ];
+    return {
+      id: String(f.user_id),
+      name: f.full_name,
+      title: f.professional_title || '',
+      location: f.location || '',
+      skills,
+      avatar: f.avatar_url || '/default-avatar.png',
+      rating: 4.8,
+      reviewCount: 0,
+      availableHours: 10,
+      hourlyRate: '$50',
+      packages: defaultPackages,
+      about: '',
+      languages,
+      education: typeof f.education === 'string' && f.education ? [{ degree: f.education, school: '', year: '' }] : [],
+      certifications: [],
+      recentProjects: [],
+      portfolioImages: [],
+      coverImage: '',
+      email: '',
+      portfolio: '',
+      yearsExperience: 1,
+    };
+  }
+
+  useEffect(() => {
+    if (!freelancer && id) {
+      setLoading(true);
+      supabase.from('freelancer_profiles').select('*').eq('user_id', id).single().then(({ data }) => {
+        if (data) {
+          setDbFreelancer(mapDbFreelancerToMock(data));
+        }
+        setLoading(false);
+      });
+    }
+  }, [freelancer, id]);
+
+  const profile = freelancer || dbFreelancer;
   // Calculate package price (5-hour package with 10% discount)
-  const hourlyRate = parseInt(freelancer.hourlyRate.replace('$', ''));
+  const hourlyRate = profile ? parseInt(profile.hourlyRate.replace('$', '')) : 0;
   const packageHours = 5;
   const packageDiscount = 0.10; // 10% discount
   const packagePrice = hourlyRate * packageHours * (1 - packageDiscount);
@@ -68,11 +150,13 @@ const FreelancerProfile: React.FC = () => {
   });
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editData, setEditData] = useState({ ...freelancer });
-  const [avatarPreview, setAvatarPreview] = useState(freelancer.avatar);
-  const [coverPreview, setCoverPreview] = useState(freelancer.coverImage || '');
+  // Only allow editing for mock freelancers (not DB freelancers)
+  const isMockFreelancer = !!freelancer;
+  const [editData, setEditData] = useState<Freelancer>(profile ? { ...profile } : ({} as Freelancer));
+  const [avatarPreview, setAvatarPreview] = useState(profile ? profile.avatar : '');
+  const [coverPreview, setCoverPreview] = useState(profile && profile.coverImage ? profile.coverImage : '/default.jpg');
   // Portfolio editing state
-  const [portfolioEdit, setPortfolioEdit] = useState<PortfolioImage[]>(editData.portfolioImages?.map(item => ({ ...item, link: item.link || '' })) || []);
+  const [portfolioEdit, setPortfolioEdit] = useState<PortfolioImage[]>(editData.portfolioImages ? editData.portfolioImages.map(item => ({ ...item, link: item.link || '' })) : []);
 
   // Inline edit state for other sections
   const [languagesEdit, setLanguagesEdit] = useState<string[]>(editData.languages || []);
@@ -116,7 +200,7 @@ const FreelancerProfile: React.FC = () => {
 
   // When entering edit mode, sync portfolioEdit with editData
   useEffect(() => {
-    if (editOpen) {
+    if (editOpen && isMockFreelancer) {
       setLanguagesEdit(editData.languages || []);
       setEducationEdit(editData.education || []);
       setCertificationsEdit(editData.certifications || []);
@@ -126,7 +210,7 @@ const FreelancerProfile: React.FC = () => {
       setEmailEdit(editData.email || '');
       setPortfolioEditField(editData.portfolio || '');
     }
-  }, [editOpen, editData]);
+  }, [editOpen, editData, isMockFreelancer]);
 
   const [newSkill, setNewSkill] = useState('');
   const [newTechs, setNewTechs] = useState<string[]>(projectsEdit.map(() => ''));
@@ -149,8 +233,8 @@ const FreelancerProfile: React.FC = () => {
     const booking = {
       id: Date.now(),
       type: 'freelancer',
-      targetId: freelancer.id,
-      targetName: freelancer.name,
+      targetId: profile?.id,
+      targetName: profile?.name,
       package: selectedPackage,
       date: selectedDate.toISOString ? selectedDate.toISOString() : selectedDate,
       time: selectedTime,
@@ -166,6 +250,10 @@ const FreelancerProfile: React.FC = () => {
     setProjectNotes('');
   };
 
+  if (loading || !profile) {
+    return <div style={{ textAlign: 'center', marginTop: 60 }}>Loading profile...</div>;
+  }
+
   return (
     <div className="with-navbar-padding">
       <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: { xs: 1, md: 4 } }}>
@@ -173,7 +261,7 @@ const FreelancerProfile: React.FC = () => {
           <div className="profile-header">
             <div
               className="profile-cover"
-              style={coverPreview ? { backgroundImage: `url(${coverPreview})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+              style={coverPreview ? { backgroundImage: `url(${coverPreview})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundImage: 'url(/random.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
               {editOpen && (
                 <label className="upload-cover-label-centered">
@@ -198,7 +286,7 @@ const FreelancerProfile: React.FC = () => {
               <div style={{ position: 'relative' }}>
                 <div style={{ position: 'relative' }}>
                   <img src={avatarPreview} alt={editData.name} className="profile-avatar" />
-                  {!editOpen && (
+                  {!editOpen && isMockFreelancer && (
                     <button className="edit-profile-btn" onClick={() => setEditOpen(true)}>
                       Edit Profile
                     </button>
@@ -273,18 +361,18 @@ const FreelancerProfile: React.FC = () => {
                       onChange={e => setEditData({ ...editData, location: e.target.value })}
                     />
                   ) : (
-                    <span>{editData.location}</span>
+                    <span>{profile.location}</span>
                   )}
                 </div>
               </div>
               <div className="profile-quick-info">
                 <div className="info-badge">
                   <span className="label">Experience</span>
-                  <span className="value">{freelancer.yearsExperience} years</span>
+                  <span className="value">{profile.yearsExperience} years</span>
                 </div>
                 <div className="info-badge">
                   <span className="label">Availability</span>
-                  <span className="value">{freelancer.availableHours}h/week</span>
+                  <span className="value">{profile.availableHours}h/week</span>
                 </div>
               </div>
               <div className="profile-actions">
@@ -306,7 +394,7 @@ const FreelancerProfile: React.FC = () => {
                     }}>
                       Save
                     </button>
-                    <button className="cancel-profile-btn" onClick={() => { setEditData({ ...freelancer }); setAvatarPreview(freelancer.avatar); setCoverPreview(freelancer.coverImage || ''); setEditOpen(false); }}>
+                    <button className="cancel-profile-btn" onClick={() => { setEditData({ ...profile }); setAvatarPreview(profile.avatar); setCoverPreview(profile.coverImage || ''); setEditOpen(false); }}>
                       Cancel
                     </button>
                   </>
@@ -318,7 +406,7 @@ const FreelancerProfile: React.FC = () => {
                       </svg>
                       Book Me
                     </button>
-                    <button className="message-profile-btn" onClick={() => navigate(`/message/freelancer/${freelancer.id}`)}>
+                    <button className="message-profile-btn" onClick={() => navigate(`/message/freelancer/${profile.id}`)}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
                       </svg>
@@ -333,14 +421,14 @@ const FreelancerProfile: React.FC = () => {
           {/* About Me (full width) */}
           <Paper elevation={2} sx={{ p: 3, mb: 4, background: '#fff', borderRadius: 4, boxShadow: 2, maxWidth: 1200, mx: 'auto' }}>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>About Me</Typography>
-            <Typography variant="body1" sx={{ color: '#222', fontSize: 17, textAlign: 'center' }}>{freelancer.about}</Typography>
+            <Typography variant="body1" sx={{ color: '#222', fontSize: 17, textAlign: 'center' }}>{profile.about}</Typography>
           </Paper>
           {/* Languages, Education, Skills in a row */}
           <Grid container spacing={4} sx={{ mb: 4 }}>
             <Grid item xs={12} md={4}>
               <Paper elevation={2} sx={{ p: 3, background: '#fff', borderRadius: 4, boxShadow: 2, height: '100%' }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>Languages</Typography>
-                {freelancer.languages?.map((lang, idx) => (
+                {(profile.languages || []).map((lang, idx) => (
                   <Typography key={idx} sx={{ color: '#222', fontSize: 16, mb: 1, textAlign: 'center' }}>{lang}</Typography>
                 ))}
               </Paper>
@@ -348,7 +436,7 @@ const FreelancerProfile: React.FC = () => {
             <Grid item xs={12} md={4}>
               <Paper elevation={2} sx={{ p: 3, background: '#fff', borderRadius: 4, boxShadow: 2, height: '100%' }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>Education</Typography>
-                {freelancer.education?.map((edu, idx) => (
+                {(profile.education || []).map((edu, idx) => (
                   <Box key={idx} sx={{ mb: 2, textAlign: 'center' }}>
                     <Typography sx={{ color: '#222', fontWeight: 600 }}>{edu.degree}</Typography>
                     <Typography sx={{ color: '#2563eb', fontSize: 15 }}>{edu.school}</Typography>
@@ -361,7 +449,7 @@ const FreelancerProfile: React.FC = () => {
               <Paper elevation={2} sx={{ p: 3, background: '#fff', borderRadius: 4, boxShadow: 2, height: '100%' }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>Skills</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                  {freelancer.skills.map((skill, idx) => (
+                  {(profile.skills || []).map((skill, idx) => (
                     <Chip key={idx} label={skill} sx={{ fontWeight: 600, fontSize: 16, background: '#dcfce7', color: '#059669', px: 2, py: 1, borderRadius: 2 }} />
                   ))}
                 </Box>
@@ -375,7 +463,7 @@ const FreelancerProfile: React.FC = () => {
               {editOpen ? 'Cancel Edit' : 'Edit Packages'}
             </Button>
             <Grid container spacing={4} justifyContent="center" sx={{ mb: 6, mt: 5 }}>
-              {editData.packages.map((pkg: any, idx: number) => (
+              {(editOpen ? (editData.packages || []) : (profile.packages || [])).map((pkg: any, idx: number) => (
                 <Grid item xs={12} md={4} key={pkg.id}>
                   <Card sx={{
                     borderRadius: 4,
@@ -494,7 +582,7 @@ const FreelancerProfile: React.FC = () => {
                         </Box>
                       )}
                       <Box sx={{ mb: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        {pkg.features.map((feature: string, i: number) => (
+                        {(pkg.features || []).map((feature: string, i: number) => (
                           <Box key={i} sx={{ display: 'flex', alignItems: 'center', width: '80%', mb: 0.5, justifyContent: 'flex-start' }}>
                             {editOpen ? (
                               <>
@@ -615,7 +703,7 @@ const FreelancerProfile: React.FC = () => {
               <h3 style={{ textAlign: 'center', fontWeight: 700, fontSize: 26, marginBottom: 24 }}>Portfolio</h3>
               {editOpen ? (
                 <div className="portfolio-edit-grid">
-                  {portfolioEdit.map((item, index) => (
+                  {(portfolioEdit || []).map((item, index) => (
                     <div className="portfolio-edit-card" key={index}>
                       <div style={{ position: 'relative', width: '100%' }}>
                         <img src={item.url} alt={item.title} />
@@ -701,7 +789,7 @@ const FreelancerProfile: React.FC = () => {
         {showBooking && (
           <div className="booking-modal-overlay" onClick={() => setShowBooking(false)}>
             <div className="booking-modal" onClick={e => e.stopPropagation()}>
-              <h3>Book {freelancer.name}</h3>
+              <h3>Book {profile.name}</h3>
               <div className="calendar-container">
                 <div className="calendar-header">
                   <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>&lt;</button>
@@ -739,11 +827,11 @@ const FreelancerProfile: React.FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: '1px solid #f0f0f0', bgcolor: 'rgba(37,99,235,0.07)' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ width: 48, height: 48, bgcolor: '#2563eb', color: '#fff', fontWeight: 700 }}>
-                  {freelancer.name[0]}
+                  {profile.name[0]}
                 </Avatar>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 700, color: '#2563eb' }}>{selectedPackage?.name} Package</Typography>
-                  <Typography variant="body2" sx={{ color: '#374151' }}>{freelancer.name}</Typography>
+                  <Typography variant="body2" sx={{ color: '#374151' }}>{profile.name}</Typography>
                 </Box>
               </Box>
               <IconButton onClick={() => { setBookingModalOpen(false); setBookingStep(1); setProjectNotes(''); }}>
@@ -769,7 +857,7 @@ const FreelancerProfile: React.FC = () => {
                   <ListAltIcon sx={{ color: '#2563eb', mr: 1, verticalAlign: 'middle' }} />
                   <Typography variant="subtitle2" sx={{ display: 'inline', fontWeight: 600 }}>Features:</Typography>
                   <ul style={{ margin: '0.5rem 0 0 1.5rem', padding: 0 }}>
-                    {selectedPackage?.features.map((feature: string, index: number) => (
+                    {(selectedPackage?.features || []).map((feature: string, index: number) => (
                       <li key={index} style={{ color: '#374151', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <CheckCircleOutlineIcon sx={{ color: '#059669', fontSize: 18, mr: 1 }} /> {feature}
                       </li>

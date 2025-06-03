@@ -8,12 +8,17 @@ interface JobDispatchListenerProps {
   freelancerId: string;
 }
 
+interface JobDescriptionMap {
+  [jobId: string]: string;
+}
+
 const JobDispatchListener: React.FC<JobDispatchListenerProps> = ({ freelancerId }) => {
   console.log('JobDispatchListener rendered with freelancerId:', freelancerId);
   const navigate = useNavigate();
   const [currentDispatch, setCurrentDispatch] = useState<JobDispatch | null>(null);
   const [showToast, setShowToast] = useState(false);
   const declinedJobIdsRef = useRef<Set<string>>(new Set());
+  const [jobDescriptions, setJobDescriptions] = useState<JobDescriptionMap>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -28,11 +33,14 @@ const JobDispatchListener: React.FC<JobDispatchListenerProps> = ({ freelancerId 
         for (const job of pendingDispatches) {
           const { data: request } = await supabase
             .from('requests')
-            .select('status,freelancer_id')
+            .select('status,freelancer_id,description')
             .eq('job_id', job.jobId)
             .single();
           if (request && (request.status !== 'open' || request.freelancer_id)) {
             continue; // skip jobs that are already assigned
+          }
+          if (request && request.description) {
+            setJobDescriptions(prev => ({ ...prev, [job.jobId]: request.description }));
           }
           if (job.status === 'pending' && job.jobId && !declinedJobIdsRef.current.has(job.jobId)) {
             setCurrentDispatch(job);
@@ -57,11 +65,14 @@ const JobDispatchListener: React.FC<JobDispatchListenerProps> = ({ freelancerId 
         // Check if the job is still open
         const { data: request } = await supabase
           .from('requests')
-          .select('status,freelancer_id')
+          .select('status,freelancer_id,description')
           .eq('job_id', dispatch.jobId)
           .single();
         if (request && (request.status !== 'open' || request.freelancer_id)) {
           return;
+        }
+        if (request && request.description) {
+          setJobDescriptions(prev => ({ ...prev, [dispatch.jobId]: request.description }));
         }
         if (dispatch.status === 'pending' && dispatch.jobId && !declinedJobIdsRef.current.has(dispatch.jobId)) {
           setCurrentDispatch(dispatch);
@@ -131,7 +142,7 @@ const JobDispatchListener: React.FC<JobDispatchListenerProps> = ({ freelancerId 
       onClose={() => setShowToast(false)}
       onAccept={handleAcceptJob}
       onDecline={handleDeclineJob}
-      jobTitle={currentDispatch.jobTitle}
+      aiReport={`${jobDescriptions[currentDispatch.jobId] ? ` ${jobDescriptions[currentDispatch.jobId]}` : ''}`}
       location={currentDispatch.location}
       costEstimate={currentDispatch.costEstimate}
       duration={currentDispatch.duration}

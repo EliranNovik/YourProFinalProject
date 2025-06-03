@@ -17,7 +17,7 @@ export interface ServicePackage {
 }
 
 export interface Freelancer {
-  id: number;
+  id: string;
   name: string;
   avatar: string;
   title: string;
@@ -43,7 +43,7 @@ export interface Freelancer {
 // Updated FREELANCERS array with complete profile data
 export const FREELANCERS: Freelancer[] = [
   {
-    id: 1,
+    id: "1",
     name: "Sarah Chen",
     avatar: "https://randomuser.me/api/portraits/women/1.jpg",
     title: "Full Stack Developer",
@@ -153,7 +153,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 2,
+    id: "2",
     name: "Marcus Rodriguez",
     avatar: "https://randomuser.me/api/portraits/men/2.jpg",
     title: "UI/UX Designer",
@@ -247,7 +247,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 3,
+    id: "3",
     name: "Emily Watson",
     avatar: "https://randomuser.me/api/portraits/women/3.jpg",
     title: "Data Scientist",
@@ -351,7 +351,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 4,
+    id: "4",
     name: "Alex Kim",
     avatar: "https://randomuser.me/api/portraits/men/4.jpg",
     title: "DevOps Engineer",
@@ -466,7 +466,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 5,
+    id: "5",
     name: "Lisa Thompson",
     avatar: "https://randomuser.me/api/portraits/women/5.jpg",
     title: "Digital Marketing Specialist",
@@ -570,7 +570,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 6,
+    id: "6",
     name: "James Wilson",
     avatar: "https://randomuser.me/api/portraits/men/6.jpg",
     title: "Blockchain Developer",
@@ -674,7 +674,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 7,
+    id: "7",
     name: "Sofia Garcia",
     avatar: "https://randomuser.me/api/portraits/women/7.jpg",
     title: "AI/ML Engineer",
@@ -730,7 +730,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 8,
+    id: "8",
     name: "David Park",
     avatar: "https://randomuser.me/api/portraits/men/8.jpg",
     title: "Mobile Game Developer",
@@ -786,7 +786,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 9,
+    id: "9",
     name: "Rachel Chen",
     avatar: "https://randomuser.me/api/portraits/women/9.jpg",
     title: "Product Manager",
@@ -842,7 +842,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 10,
+    id: "10",
     name: "Thomas Schmidt",
     avatar: "https://randomuser.me/api/portraits/men/10.jpg",
     title: "Security Engineer",
@@ -898,7 +898,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 11,
+    id: "11",
     name: "Nina Patel",
     avatar: "https://randomuser.me/api/portraits/women/11.jpg",
     title: "IoT Developer",
@@ -954,7 +954,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 12,
+    id: "12",
     name: "Carlos Martinez",
     avatar: "https://randomuser.me/api/portraits/men/12.jpg",
     title: "VR/AR Developer",
@@ -1010,7 +1010,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 13,
+    id: "13",
     name: "Dr. Emma Watson",
     avatar: "https://randomuser.me/api/portraits/women/13.jpg",
     title: "Bioinformatics Specialist",
@@ -1066,7 +1066,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 14,
+    id: "14",
     name: "Yuki Tanaka",
     avatar: "https://randomuser.me/api/portraits/women/14.jpg",
     title: "Quantum Computing Engineer",
@@ -1122,7 +1122,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 15,
+    id: "15",
     name: "Klaus Weber",
     avatar: "https://randomuser.me/api/portraits/men/15.jpg",
     title: "Robotics Engineer",
@@ -1178,7 +1178,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 16,
+    id: "16",
     name: "Sarah Chen",
     title: "UX/UI Designer",
     location: "San Francisco, CA",
@@ -1234,7 +1234,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 17,
+    id: "17",
     name: "Marcus Johnson",
     title: "Full Stack Developer",
     location: "Austin, TX",
@@ -1280,7 +1280,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 18,
+    id: "18",
     name: "Emma Wilson",
     title: "Content Strategist",
     location: "Chicago, IL",
@@ -1326,7 +1326,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 19,
+    id: "19",
     name: "David Park",
     title: "Mobile App Developer",
     location: "Seattle, WA",
@@ -1372,7 +1372,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 20,
+    id: "20",
     name: "Lisa Martinez",
     title: "Digital Marketing Specialist",
     location: "Miami, FL",
@@ -1418,7 +1418,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 21,
+    id: "21",
     name: "James Cooper",
     title: "DevOps Engineer",
     location: "Portland, OR",
@@ -1464,7 +1464,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 22,
+    id: "22",
     name: "Nina Patel",
     title: "Data Scientist",
     location: "Boston, MA",
@@ -1510,7 +1510,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 23,
+    id: "23",
     name: "Alex Thompson",
     title: "Video Editor",
     location: "Los Angeles, CA",
@@ -1556,7 +1556,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 24,
+    id: "24",
     name: "Rachel Kim",
     title: "Product Manager",
     location: "New York, NY",
@@ -1602,7 +1602,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 25,
+    id: "25",
     name: "Michael Brown",
     title: "Cybersecurity Specialist",
     location: "Washington, DC",
@@ -1648,7 +1648,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 26,
+    id: "26",
     name: "Sofia Rodriguez",
     title: "Graphic Designer",
     location: "Denver, CO",
@@ -1694,7 +1694,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 27,
+    id: "27",
     name: "William Taylor",
     title: "Technical Writer",
     location: "Remote",
@@ -1740,8 +1740,8 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 28,
-    name: "Olivia Green",
+    id: "28",
+    name: "Olivia Chen",
     title: "SEO Specialist",
     location: "Nashville, TN",
     avatar: "https://randomuser.me/api/portraits/women/28.jpg",
@@ -1786,7 +1786,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 29,
+    id: "29",
     name: "Daniel Lee",
     title: "3D Artist",
     location: "Vancouver, BC",
@@ -1832,8 +1832,8 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 30,
-    name: "Hannah Anderson",
+    id: "30",
+    name: "Isabella Martinez",
     title: "Business Analyst",
     location: "Phoenix, AZ",
     avatar: "https://randomuser.me/api/portraits/women/30.jpg",
@@ -1878,9 +1878,9 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 101,
-    name: "Noa Levi",
-    avatar: "https://randomuser.me/api/portraits/women/31.jpg",
+    id: "31",
+    name: "Ethan Wilson",
+    avatar: "https://randomuser.me/api/portraits/men/31.jpg",
     title: "Frontend Developer",
     skills: ["React", "Vue.js", "JavaScript", "CSS", "HTML"],
     yearsExperience: 5,
@@ -1934,9 +1934,9 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 102,
-    name: "David Cohen",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    id: "32",
+    name: "Sophia Kim",
+    avatar: "https://randomuser.me/api/portraits/women/32.jpg",
     title: "Full Stack Engineer",
     skills: ["Node.js", "React", "MongoDB", "TypeScript", "AWS"],
     yearsExperience: 7,
@@ -1990,9 +1990,9 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 103,
-    name: "Maya Shapira",
-    avatar: "https://randomuser.me/api/portraits/women/33.jpg",
+    id: "33",
+    name: "Noah Garcia",
+    avatar: "https://randomuser.me/api/portraits/men/33.jpg",
     title: "UX/UI Designer",
     skills: ["Figma", "Sketch", "Adobe XD", "User Research", "Wireframing"],
     yearsExperience: 6,
@@ -2046,9 +2046,9 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 104,
-    name: "Eli Ben-Ami",
-    avatar: "https://randomuser.me/api/portraits/men/34.jpg",
+    id: "34",
+    name: "Ava Thompson",
+    avatar: "https://randomuser.me/api/portraits/women/34.jpg",
     title: "DevOps Engineer",
     skills: ["AWS", "Docker", "Kubernetes", "CI/CD", "Linux"],
     yearsExperience: 8,
@@ -2102,7 +2102,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 105,
+    id: "105",
     name: "Tamar Goldstein",
     avatar: "https://randomuser.me/api/portraits/women/35.jpg",
     title: "Data Scientist",
@@ -2158,7 +2158,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 106,
+    id: "106",
     name: "Lior Mizrahi",
     avatar: "https://randomuser.me/api/portraits/men/36.jpg",
     title: "Personal Trainer",
@@ -2214,7 +2214,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 107,
+    id: "107",
     name: "Yossi Azulay",
     avatar: "https://randomuser.me/api/portraits/men/37.jpg",
     title: "Truck Driver",
@@ -2270,7 +2270,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 108,
+    id: "108",
     name: "Shira Bar-On",
     avatar: "https://randomuser.me/api/portraits/women/36.jpg",
     title: "Photographer",
@@ -2326,7 +2326,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 109,
+    id: "109",
     name: "Rachel Green",
     avatar: "https://randomuser.me/api/portraits/women/37.jpg",
     title: "English Teacher",
@@ -2382,7 +2382,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 110,
+    id: "110",
     name: "Avi Shalev",
     avatar: "https://randomuser.me/api/portraits/men/38.jpg",
     title: "Real Estate Agent",
@@ -2438,7 +2438,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 111,
+    id: "111",
     name: "Dana Weiss",
     avatar: "https://randomuser.me/api/portraits/women/38.jpg",
     title: "Life Coach",
@@ -2494,7 +2494,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 112,
+    id: "112",
     name: "Erez Levi",
     avatar: "https://randomuser.me/api/portraits/men/39.jpg",
     title: "Tour Guide",
@@ -2550,7 +2550,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 113,
+    id: "113",
     name: "Tali Mor",
     avatar: "https://randomuser.me/api/portraits/women/39.jpg",
     title: "Architect",
@@ -2606,7 +2606,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 114,
+    id: "114",
     name: "Matan Cohen",
     avatar: "https://randomuser.me/api/portraits/men/40.jpg",
     title: "Chef",
@@ -2662,7 +2662,7 @@ export const FREELANCERS: Freelancer[] = [
     ]
   },
   {
-    id: 115,
+    id: "115",
     name: "Ronit Levi",
     avatar: "https://randomuser.me/api/portraits/women/40.jpg",
     title: "Plumber",
@@ -2864,7 +2864,7 @@ const Freelancers: React.FC = () => {
   };
 
   // Handler for Message Me
-  const handleMessage = (freelancerId: number) => {
+  const handleMessage = (freelancerId: string) => {
     navigate(`/message/freelancer/${freelancerId}`);
   };
 

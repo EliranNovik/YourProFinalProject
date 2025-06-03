@@ -106,7 +106,7 @@ const MapDialogTransition = React.forwardRef(function Transition(
 
 interface CombinedResultItem extends Partial<Freelancer> {
   _type: 'freelancer' | 'company';
-  id: number;
+  id: string;
   name: string;
   location: string;
   rating?: number;
@@ -246,7 +246,7 @@ const CombinedResults: React.FC = () => {
       return new Date(today.getFullYear(), today.getMonth(), 1);
     });
   };
-  const handleMessage = (type: 'freelancer' | 'company', id: number) => {
+  const handleMessage = (type: 'freelancer' | 'company', id: string) => {
     navigate(`/message/${type}/${id}`);
   };
 

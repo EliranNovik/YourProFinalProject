@@ -6,15 +6,20 @@ import { supabase } from '../config/supabase';
 const CompleteFreelancerProfile: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    full_name: '',
     professionalTitle: '',
     education: '',
     languages: '',
     hourlyRate: '',
     packageRate: '',
     services: '',
+    skills: '',
+    location: '',
+    avatar_url: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,6 +27,18 @@ const CompleteFreelancerProfile: React.FC = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+        setFormData(prev => ({ ...prev, avatar_url: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +72,10 @@ const CompleteFreelancerProfile: React.FC = () => {
       const { error: insertError } = await supabase.from('freelancer_profiles').insert([
         {
           user_id: user.id,
+          full_name: formData.full_name,
+          location: formData.location,
+          skills: formData.skills.split(',').map(s => s.trim()),
+          avatar_url: formData.avatar_url,
           professional_title: formData.professionalTitle,
           education: formData.education,
           languages: formData.languages.split(',').map(l => l.trim()),
@@ -79,6 +100,56 @@ const CompleteFreelancerProfile: React.FC = () => {
       <p className="subtitle">Fill out your professional details to finish registration.</p>
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="full_name">Full Name</label>
+            <input
+              type="text"
+              id="full_name"
+              name="full_name"
+              value={formData.full_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="location">Location</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="skills">Skills (comma-separated)</label>
+            <input
+              type="text"
+              id="skills"
+              name="skills"
+              value={formData.skills}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="avatar_url">Profile Picture</label>
+            <input
+              type="file"
+              id="avatar_url"
+              name="avatar_url"
+              accept="image/*"
+              onChange={handleAvatarChange}
+            />
+            {avatarPreview && (
+              <img src={avatarPreview} alt="Profile Preview" style={{ width: 80, height: 80, borderRadius: '50%', marginTop: 8 }} />
+            )}
+          </div>
+        </div>
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="professionalTitle">Professional Title</label>

@@ -17,7 +17,7 @@ export interface ServicePackage {
 }
 
 export interface Company {
-  id: number;
+  id: string;
   name: string;
   logo?: string;
   industry: string;
@@ -44,7 +44,7 @@ export interface Company {
 // Enhanced mock data with more detailed industry information
 export const COMPANIES: Company[] = [
   {
-    id: 1,
+    id: "1",
     name: "TechVision Solutions",
     logo: "https://logo.clearbit.com/techvision.com",
     industry: "Software Development",
@@ -278,7 +278,7 @@ const Companies: React.FC = () => {
   };
 
   // Handler for Message Us
-  const handleMessage = (companyId: number) => {
+  const handleMessage = (companyId: string) => {
     navigate(`/message/company/${companyId}`);
   };
 

@@ -7,7 +7,7 @@ interface JobNotificationToastProps {
   onClose: () => void;
   onAccept: () => void;
   onDecline: () => void;
-  jobTitle: string;
+  aiReport: string;
   location: string;
   costEstimate: string;
   duration: string;
@@ -18,7 +18,7 @@ const JobNotificationToast: React.FC<JobNotificationToastProps> = ({
   onClose,
   onAccept,
   onDecline,
-  jobTitle,
+  aiReport,
   location,
   costEstimate,
   duration,
@@ -29,7 +29,7 @@ const JobNotificationToast: React.FC<JobNotificationToastProps> = ({
     <div className="job-notification-toast">
       <div className="toast-content">
         <h3>New Job Opportunity!</h3>
-        <p>Job Title: {jobTitle}</p>
+        <p>Job: {aiReport}</p>
         <p>Location: {location}</p>
         <p>Estimated Cost: {costEstimate}</p>
         <p>Duration: {duration}</p>

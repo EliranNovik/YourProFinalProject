@@ -25,6 +25,21 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import SendIcon from '@mui/icons-material/Send';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import { supabase } from '../config/supabase';
+
+interface DBFreelancer {
+  user_id: string;
+  full_name: string;
+  professional_title: string;
+  location: string;
+  skills: string[];
+  avatar_url?: string;
+  education?: string;
+  languages?: string[];
+  hourly_rate?: number;
+  package_rate?: number;
+  services?: string[];
+}
 
 const Professionals: React.FC = () => {
   const navigate = useNavigate();
@@ -42,7 +57,7 @@ const Professionals: React.FC = () => {
   });
   const [selectedPackage, setSelectedPackage] = useState<{
     type: 'freelancer' | 'company';
-    id: number;
+    id: string;
     name: string;
     package: {
       id: string;
@@ -61,6 +76,9 @@ const Professionals: React.FC = () => {
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
   const [quoteDetails, setQuoteDetails] = useState('');
   const [quotePriceRange, setQuotePriceRange] = useState<[number, number]>([100, 1000]);
+  const [dbFreelancers, setDbFreelancers] = useState<DBFreelancer[]>([]);
+  const [selectedDbFreelancer, setSelectedDbFreelancer] = useState<DBFreelancer | null>(null);
+  const [showDbFreelancerModal, setShowDbFreelancerModal] = useState(false);
 
   // Combine and randomize filtered results
   const combinedResults = React.useMemo(() => {
@@ -215,11 +233,11 @@ const Professionals: React.FC = () => {
   };
 
   // Handler for Message Me
-  const handleMessage = (id: number, type: 'freelancer' | 'company') => {
+  const handleMessage = (id: string, type: 'freelancer' | 'company') => {
     navigate(`/message/${type}/${id}`);
   };
 
-  const handlePackageClick = (type: 'freelancer' | 'company', id: number, name: string, packageData: any) => {
+  const handlePackageClick = (type: 'freelancer' | 'company', id: string, name: string, packageData: any) => {
     setSelectedPackage({ type, id, name, package: packageData });
     setShowBookingModal(true);
   };
@@ -544,6 +562,29 @@ const Professionals: React.FC = () => {
               ))}
             </div>
           </div>
+          {/* Packages Section */}
+          <div className="packages-section" style={{ margin: '18px 0' }}>
+            <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: '#2563eb' }}>Packages</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {(freelancer.packages || []).map(pkg => (
+                <div key={pkg.id} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, background: '#f8fafc', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ fontWeight: 700, color: '#2563eb', fontSize: 16 }}>{pkg.name}</span>
+                    <span style={{ fontWeight: 700, color: '#059669', fontSize: 16 }}>${pkg.price}</span>
+                    <span style={{ color: '#888', fontSize: 14 }}>{pkg.timeline}</span>
+                  </div>
+                  <div style={{ color: '#374151', fontSize: 15, marginBottom: 6 }}>{pkg.description}</div>
+                  <ul style={{ margin: '0 0 0 1.2rem', padding: 0 }}>
+                    {(pkg.features || []).map((feature, i) => (
+                      <li key={i} style={{ color: '#059669', fontSize: 15, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 16 }}>✔</span> {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="info-section">
             <div className="info-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -559,7 +600,7 @@ const Professionals: React.FC = () => {
                 key={pkg.id}
                 variant="outlined"
                 className={`package-button ${pkg.name.toLowerCase()}`}
-                onClick={e => { e.preventDefault(); handlePackageClick('freelancer', freelancer.id, freelancer.name, pkg); }}
+                onClick={e => { e.preventDefault(); handlePackageClick('freelancer', freelancer.id.toString(), freelancer.name, pkg); }}
               >
                 {pkg.name}
               </Button>
@@ -578,7 +619,7 @@ const Professionals: React.FC = () => {
             <Button
               variant="outlined"
               className="message-button"
-              onClick={e => { e.preventDefault(); handleMessage(freelancer.id, 'freelancer'); }}
+              onClick={e => { e.preventDefault(); handleMessage(freelancer.id.toString(), 'freelancer'); }}
               startIcon={<ChatBubbleOutlineIcon />}
             >
               Message
@@ -638,7 +679,7 @@ const Professionals: React.FC = () => {
                   key={pkg.id}
                   variant="outlined"
                   className={`package-button ${pkg.name.toLowerCase()}`}
-                  onClick={e => { e.preventDefault(); handlePackageClick('company', company.id, company.name, pkg); }}
+                  onClick={e => { e.preventDefault(); handlePackageClick('company', company.id.toString(), company.name, pkg); }}
                 >
                   {pkg.name}
                 </Button>
@@ -655,7 +696,7 @@ const Professionals: React.FC = () => {
             </Button>
             <Button
               variant="outlined"
-              onClick={e => { e.preventDefault(); handleMessage(company.id, 'company'); }}
+              onClick={e => { e.preventDefault(); handleMessage(company.id.toString(), 'company'); }}
             >
               Message
             </Button>
@@ -664,6 +705,80 @@ const Professionals: React.FC = () => {
       </div>
     </Link>
   );
+
+  useEffect(() => {
+    async function fetchDbFreelancers() {
+      const { data, error } = await supabase.from('freelancer_profiles').select('*');
+      if (data) setDbFreelancers(data);
+    }
+    fetchDbFreelancers();
+  }, []);
+
+  // Helper to map DB freelancer to mock Freelancer shape
+  function mapDbFreelancerToMock(f: DBFreelancer): Freelancer {
+    let skills: string[] = [];
+    if (Array.isArray(f.skills)) {
+      skills = f.skills;
+    } else if (typeof f.skills === 'string') {
+      skills = (f.skills as string).split(',').map((s: string) => s.trim()).filter(Boolean);
+    }
+    let languages: string[] = [];
+    if (Array.isArray(f.languages)) {
+      languages = f.languages;
+    } else if (typeof f.languages === 'string') {
+      languages = (f.languages as string).split(',').map((l: string) => l.trim()).filter(Boolean);
+    }
+    // Default packages for DB freelancers
+    const defaultPackages: import('./Freelancers').ServicePackage[] = [
+      {
+        id: 'basic',
+        name: 'Basic',
+        description: 'A basic package for small projects',
+        price: 50,
+        timeline: '1-2 weeks',
+        features: ['Feature 1', 'Feature 2']
+      },
+      {
+        id: 'pro',
+        name: 'Pro',
+        description: 'A comprehensive package for medium-sized projects',
+        price: 100,
+        timeline: '2-4 weeks',
+        features: ['Feature 3', 'Feature 4']
+      },
+      {
+        id: 'premium',
+        name: 'Premium',
+        description: 'A premium package for large-scale projects',
+        price: 150,
+        timeline: '4-6 weeks',
+        features: ['Feature 5', 'Feature 6']
+      }
+    ];
+    return {
+      id: String(f.user_id),
+      name: f.full_name,
+      title: f.professional_title || '',
+      location: f.location || '',
+      skills,
+      avatar: f.avatar_url || '/default-avatar.png',
+      rating: 4.8, // default or fetch if available
+      reviewCount: 0, // default or fetch if available
+      availableHours: 10, // default or fetch if available
+      hourlyRate: '$50', // default or fetch if available
+      packages: defaultPackages,
+      about: '',
+      languages,
+      education: typeof f.education === 'string' && f.education ? [{ degree: f.education, school: '', year: '' }] : [],
+      certifications: [],
+      recentProjects: [],
+      portfolioImages: [],
+      coverImage: '',
+      email: '',
+      portfolio: '',
+      yearsExperience: 1,
+    };
+  }
 
   return (
     <div className="with-navbar-padding">
@@ -765,6 +880,15 @@ const Professionals: React.FC = () => {
 
         {renderBookingModal()}
         {renderThankYouModal()}
+
+        <h2 style={{ color: '#2563eb', fontWeight: 900, marginBottom: 18 }}>Freelancers</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, marginBottom: 32 }}>
+          {dbFreelancers.map(f => (
+            <Link to={`/freelancer/${f.user_id}`} key={f.user_id} className="freelancer-card-link">
+              {renderFreelancerCard(mapDbFreelancerToMock(f))}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -382,7 +382,7 @@ const Requests: React.FC = () => {
   );
 
   return (
-    <div className="with-navbar-padding" style={{ padding: '6rem 0 2rem 0', background: 'linear-gradient(120deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: '100vh' }}>
+    <div className="with-navbar-padding" style={{ padding: '6rem 0 2rem 0', background: 'none', minHeight: '100vh' }}>
       <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2563eb', fontWeight: 800, letterSpacing: 1 }}>Requests</h1>
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
         <Tooltip title={listView ? 'Switch to Grid View' : 'Switch to List View'}>

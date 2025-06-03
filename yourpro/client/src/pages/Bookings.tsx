@@ -135,9 +135,9 @@ const Bookings: React.FC = () => {
   });
 
   return (
-    <div className="with-navbar-padding" style={{ padding: '6rem 0 2rem 0', background: 'linear-gradient(120deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: '100vh' }}>
+    <div className="with-navbar-padding" style={{ padding: '6rem 0 2rem 0', background: 'none', minHeight: '100vh' }}>
       <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2563eb', fontWeight: 800, letterSpacing: 1 }}>My Bookings</h1>
-      <Paper elevation={3} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, borderRadius: 3, boxShadow: 3, mb: 4, maxWidth: 900, mx: 'auto', background: '#f8fafc' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 32 }}>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%' }}>
           <TextField
             label="Search"
@@ -192,7 +192,7 @@ const Bookings: React.FC = () => {
             InputLabelProps={{ shrink: true }}
           />
         </Stack>
-      </Paper>
+      </div>
       {filteredBookings.length === 0 ? (
         <div style={{ textAlign: 'center', marginTop: '4rem', color: '#6b7280', fontSize: '1.2rem' }}>
           <CheckCircleIcon sx={{ fontSize: 60, color: '#e0e7ff', mb: 2 }} />

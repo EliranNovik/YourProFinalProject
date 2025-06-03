@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../services/auth';
+import './FreelancerRegistration.css';
 
 const FreelancerRegistration: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -44,7 +45,7 @@ const FreelancerRegistration: React.FC = () => {
       <p className="subtitle">Register with your email and password. You will be asked to complete your profile after confirming your email and logging in.</p>
       {error && <div className="error-message">{error}</div>}
       {!emailSent ? (
-        <form onSubmit={handleRegister}>
+        <form onSubmit={handleRegister} className="freelancer-registration-form">
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="fullName">Full Name</label>
@@ -55,6 +56,8 @@ const FreelancerRegistration: React.FC = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
+                placeholder="Enter your full name"
+                autoFocus
               />
             </div>
             <div className="form-group">
@@ -66,6 +69,7 @@ const FreelancerRegistration: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                placeholder="Enter your email address"
               />
             </div>
             <div className="form-group">
@@ -77,6 +81,7 @@ const FreelancerRegistration: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                placeholder="Create a password"
               />
             </div>
           </div>

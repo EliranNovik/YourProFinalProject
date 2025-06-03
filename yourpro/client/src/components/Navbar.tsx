@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
     navigate('/login');
   };
 
-  const username = user?.user_metadata?.name || user?.email || 'User';
+  const username = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User';
   const isLoggedIn = !!user;
 
   return (

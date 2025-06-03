@@ -1,16 +1,16 @@
 .freelancer-registration {
   max-width: 800px;
   margin: 2rem auto;
-  padding: 3rem;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  padding: 3rem 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .freelancer-registration h1 {
   text-align: center;
   color: #4361ee;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.9rem;
   font-size: 2.5rem;
   font-weight: 600;
 }
@@ -81,8 +81,8 @@
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
   margin-bottom: 2.5rem;
 }
@@ -191,4 +191,10 @@
 
 .with-navbar-padding.freelancer-registration {
   margin-top: 6.5rem;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    gap: 0.5rem;
+  }
 } 

@@ -28,11 +28,11 @@ const MessagePage: React.FC = () => {
   let avatar = '';
 
   if (type === 'freelancer') {
-    profile = FREELANCERS.find(f => f.id === Number(id));
+    profile = FREELANCERS.find(f => f.id === id);
     name = profile?.name;
     avatar = profile?.avatar;
   } else if (type === 'company') {
-    profile = COMPANIES.find(c => c.id === Number(id));
+    profile = COMPANIES.find(c => c.id === id);
     name = profile?.name;
     avatar = profile?.logo;
   }

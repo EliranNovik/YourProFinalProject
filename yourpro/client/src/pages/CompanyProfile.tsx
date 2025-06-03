@@ -63,7 +63,7 @@ const CompanyLogo: React.FC<{ logo: string; name: string }> = ({ logo, name }) =
 
 const CompanyProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const company = COMPANIES.find((c: Company) => c.id === Number(id)) || COMPANIES[0];
+  const company = COMPANIES.find((c: Company) => c.id === id) || COMPANIES[0];
   const navigate = useNavigate();
 
   // Calculate package price (5-hour package with 10% discount)
