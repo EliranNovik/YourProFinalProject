@@ -18,7 +18,7 @@ import CallIcon from '@mui/icons-material/Call';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import styles from './JobInProgress.module.css';
 import MessageModal from '../components/MessageModal';
@@ -34,22 +34,22 @@ interface TimelineStep {
 interface Message {
   id: number;
   text: string;
-  sender: 'user' | 'freelancer';
+  sender: 'client' | 'freelancer';
   timestamp: Date;
 }
 
 const JobInProgress: React.FC = () => {
   const location = useLocation();
   const { jobId } = useParams();
-  const { freelancer, aiReport, jobtitle } = (location.state || {}) as any;
+  const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(2); // Freelancer Arrived (index 2)
+  const [currentStep, setCurrentStep] = useState(2);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       text: "Hi! I'm here to help with your job. How can I assist you?",
       sender: 'freelancer',
-      timestamp: new Date(Date.now() - 1000 * 60 * 5) // 5 minutes ago
+      timestamp: new Date(Date.now() - 1000 * 60 * 5)
     }
   ]);
   const [newMessage, setNewMessage] = useState('');
@@ -61,27 +61,71 @@ const JobInProgress: React.FC = () => {
     professional_title?: string;
     avatar_url?: string;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [freelancer, setFreelancer] = useState<any>(null);
+  const [aiReport, setAiReport] = useState<any>(null);
+  const [jobtitle, setJobtitle] = useState<string>('');
 
   useEffect(() => {
-    const fetchJobDetails = async () => {
+    const fetchJobData = async () => {
       if (!jobId) return;
       
-      const { data, error } = await supabase
-        .from('requests')
-        .select('*')
-        .eq('job_id', jobId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching job details:', error);
-        return;
+      try {
+        // Fetch job details from live_jobs table
+        const { data: jobData, error: jobError } = await supabase
+          .from('live_jobs')
+          .select('*')
+          .eq('job_id', jobId)
+          .single();
+        
+        if (jobError) throw jobError;
+        
+        setJobDetails(jobData);
+        setJobtitle(jobData.job_title || '');
+        setAiReport({
+          report: jobData.ai_report || '',
+          timeFrame: jobData.duration || '2-3 hours',
+          costEstimate: jobData.cost_estimate || '$150-$300'
+        });
+
+        // Fetch freelancer details
+        if (jobData.freelancer_id) {
+          const { data: freelancerData, error: freelancerError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', jobData.freelancer_id)
+            .single();
+          
+          if (freelancerError) throw freelancerError;
+          
+          setFreelancer(freelancerData);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching job data:', error);
+        setLoading(false);
       }
-      
-      setJobDetails(data);
     };
 
-    fetchJobDetails();
+    fetchJobData();
   }, [jobId]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>Loading job details...</Typography>
+      </Box>
+    );
+  }
+
+  if (!jobDetails || !freelancer) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>Job not found or you don't have permission to view it.</Typography>
+      </Box>
+    );
+  }
 
   // Define timeline steps
   const timelineSteps: TimelineStep[] = [
@@ -139,7 +183,7 @@ const JobInProgress: React.FC = () => {
     const userMessage: Message = {
       id: messages.length + 1,
       text: newMessage,
-      sender: 'user',
+      sender: 'client',
       timestamp: new Date()
     };
 
@@ -180,14 +224,6 @@ const JobInProgress: React.FC = () => {
     });
     setShowMessageModal(true);
   };
-
-  if (!freelancer || !aiReport) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography>Loading job details...</Typography>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ minHeight: '100vh', pb: 6 }}>
@@ -429,7 +465,7 @@ const JobInProgress: React.FC = () => {
                 key={message.id}
                 sx={{
                   display: 'flex',
-                  justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                  justifyContent: message.sender === 'client' ? 'flex-end' : 'flex-start',
                   gap: 1
                 }}
               >
@@ -447,8 +483,8 @@ const JobInProgress: React.FC = () => {
                     sx={{
                       p: 1.5,
                       maxWidth: '70%',
-                      bgcolor: message.sender === 'user' ? '#2563eb' : '#fff',
-                      color: message.sender === 'user' ? '#fff' : '#23263a',
+                      bgcolor: message.sender === 'client' ? '#2563eb' : '#fff',
+                      color: message.sender === 'client' ? '#fff' : '#23263a',
                       borderRadius: '12px',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                     }}
@@ -461,7 +497,7 @@ const JobInProgress: React.FC = () => {
                       display: 'block',
                       mt: 0.5,
                       color: '#6b7280',
-                      textAlign: message.sender === 'user' ? 'right' : 'left'
+                      textAlign: message.sender === 'client' ? 'right' : 'left'
                     }}
                   >
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

@@ -436,10 +436,10 @@ const Clients: React.FC = () => {
     }, 50);
   };
 
-  const isDarkMode = typeof document !== 'undefined' && document.body.classList.contains('dark-mode');
+  const isDarkMode = false; // Force light mode backgrounds for this page
 
   return (
-    <div className="clients-page" style={{ background: '#fff', minHeight: '100vh', padding: '2rem 0' }}>
+    <div className="clients-page">
       <div className="clients-sidebar">
         <div className="clients-controls">
           <input
@@ -447,13 +447,12 @@ const Clients: React.FC = () => {
             placeholder="Search clients..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%' }}
           />
           <div style={{ marginTop: 8 }}>
             <select
               value={sortType}
               onChange={e => setSortType(e.target.value)}
-              style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', fontSize: 15, zIndex: 10, position: 'relative' }}
+              style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', fontSize: 15 }}
             >
               <option value="">Sort by...</option>
               <option value="start">Start Date</option>
@@ -466,7 +465,6 @@ const Clients: React.FC = () => {
         </div>
         <div className="clients-list">
           {filteredClients.map((client, idx) => {
-            // Type guard for local client
             const isLocal = typeof (client as any).targetId !== 'undefined' && typeof (client as any).type !== 'undefined';
             const key = isLocal ? ((client as any).bookingId || ((client as any).type + '-' + (client as any).targetId)) : client.id;
             return (
@@ -478,22 +476,11 @@ const Clients: React.FC = () => {
                 onMouseLeave={() => setHoveredClientId(null)}
               >
                 <img src={client.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'} alt={client.name} className="client-avatar" />
-                <div
-                  className="client-name"
-                  style={{
-                    color:
-                      isDarkMode && (selectedId === key || hoveredClientId === key)
-                        ? '#2563eb'
-                        : isDarkMode
-                        ? '#bfc8f8'
-                        : '#23236a',
-                    fontWeight: 700
-                  }}
-                >
-                  {client.name}
+                <div>
+                  <div className="client-name">{client.name}</div>
+                  <div className="client-joined">{isLocal && (client as any).date ? (client as any).date : formatDate((client as any).joined)}</div>
+                  <div className="client-project">{client.project}</div>
                 </div>
-                <div className="client-joined">{isLocal && (client as any).date ? (client as any).date : formatDate((client as any).joined)}</div>
-                <div className="client-project">{client.project}</div>
               </div>
             );
           })}
@@ -502,13 +489,14 @@ const Clients: React.FC = () => {
       <div className="client-details-panel" ref={detailsPanelRef}>
         {selectedClient && (
           <>
-            <div className="client-details-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="client-details-header">
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <img src={selectedClient.avatar} alt={selectedClient.name} className="client-details-avatar" />
                 <div>
-                  <div className="client-details-name" style={{ color: isDarkMode ? '#f3f4f6' : '#23236a' }}>{selectedClient.name}</div>
+                  <div className="client-details-name">{selectedClient.name}</div>
                   <div className="client-details-project">{selectedClient.project}</div>
-                  <div className="client-details-contact">{selectedClient.contact} | {selectedClient.phone}
+                  <div className="client-details-contact">
+                    {selectedClient.contact} | {selectedClient.phone}
                     <a
                       href={`tel:${selectedClient.phone}`}
                       style={{
@@ -560,7 +548,6 @@ const Clients: React.FC = () => {
                   const totalStages = selectedClient.process.length;
                   const completedStages = selectedClient.process.filter(s => s.status === 'done').length;
                   const percent = Math.round((completedStages / totalStages) * 100);
-                  // For demo, assume $5000 total, $X per stage
                   const totalCost = 5000;
                   const costPerStage = totalCost / totalStages;
                   const completedCost = completedStages * costPerStage;

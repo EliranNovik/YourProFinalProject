@@ -34,6 +34,7 @@ import CompleteFreelancerProfile from './pages/CompleteFreelancerProfile';
 import SearchingForPro from './pages/SearchingForPro';
 import JobInProgress from './pages/JobInProgress';
 import LiveJobs from './pages/LiveJobs';
+import ClientJobsInProgress from './pages/ClientJobsInProgress';
 
 const theme = createTheme({
   palette: {
@@ -81,6 +82,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/requests" element={<Requests />} />
         <Route path="/complete-freelancer-profile" element={<CompleteFreelancerProfile />} />
         <Route path="/searching-for-pro" element={<SearchingForPro />} />
+        <Route path="/client-jobs-in-progress/:jobId" element={<ClientJobsInProgress />} />
+        <Route path="/client-jobs-in-progress" element={<ClientJobsInProgress />} />
         <Route path="/job-in-progress/:jobId" element={<JobInProgress />} />
         <Route path="/live-jobs" element={<LiveJobs />} />
       </Routes>
