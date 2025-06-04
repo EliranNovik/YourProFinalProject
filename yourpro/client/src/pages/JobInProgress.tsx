@@ -22,6 +22,11 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import styles from './JobInProgress.module.css';
 import MessageModal from '../components/MessageModal';
+import DialogActions from '@mui/material/DialogActions';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 interface TimelineStep {
   label: string;
@@ -65,6 +70,10 @@ const JobInProgress: React.FC = () => {
   const [freelancer, setFreelancer] = useState<any>(null);
   const [aiReport, setAiReport] = useState<any>(null);
   const [jobtitle, setJobtitle] = useState<string>('');
+  const [stepStatus, setStepStatus] = useState<any[]>([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('Credit Card');
+  const [paymentComplete, setPaymentComplete] = useState(false);
 
   useEffect(() => {
     const fetchJobData = async () => {
@@ -111,6 +120,33 @@ const JobInProgress: React.FC = () => {
     fetchJobData();
   }, [jobId]);
 
+  // Polling: fetch stepStatus from Supabase every 10 seconds
+  useEffect(() => {
+    if (!jobDetails?.job_id) return;
+    let interval: NodeJS.Timeout;
+    const fetchStepStatus = async () => {
+      const { data, error } = await supabase
+        .from('live_jobs')
+        .select('step_status')
+        .eq('job_id', jobDetails.job_id)
+        .single();
+      if (data?.step_status) {
+        setStepStatus(data.step_status);
+      } else {
+        setStepStatus(Array.from({ length: 6 }, () => ({ completed: false, time: null })));
+      }
+    };
+    fetchStepStatus(); // initial fetch
+    interval = setInterval(fetchStepStatus, 10000); // poll every 10s
+    return () => clearInterval(interval);
+  }, [jobDetails?.job_id]);
+
+  useEffect(() => {
+    if (stepStatus[5]?.completed && !paymentComplete) {
+      setShowPaymentModal(true);
+    }
+  }, [stepStatus, paymentComplete]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -127,7 +163,7 @@ const JobInProgress: React.FC = () => {
     );
   }
 
-  // Define timeline steps
+  // Map freelancer stepStatus to client timeline
   const timelineSteps: TimelineStep[] = [
     { 
       label: 'Freelancer Assigned', 
@@ -144,31 +180,38 @@ const JobInProgress: React.FC = () => {
     { 
       label: 'Freelancer Arrived', 
       desc: 'Service provider is on-site and ready to begin', 
-      time: 'Now'
+      time: stepStatus[0]?.completed ? stepStatus[0]?.time : 'Now',
+      done: !!stepStatus[0]?.completed
     },
     { 
       label: 'Work in Progress', 
       desc: 'Installation work is currently underway', 
-      time: 'Now'
+      time: stepStatus[1]?.completed ? stepStatus[1]?.time : 'Now',
+      done: !!stepStatus[1]?.completed
     },
     { 
       label: 'Task Completed', 
       desc: 'Work completion and quality inspection', 
-      time: 'Estimated soon'
+      time: stepStatus[5]?.completed ? stepStatus[5]?.time : 'Estimated soon',
+      done: !!stepStatus[5]?.completed
     },
     { 
       label: 'Payment Done', 
       desc: 'Final payment processing and job closure', 
-      time: 'After completion'
+      time: paymentComplete ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'After completion',
+      done: paymentComplete
     }
   ];
 
-  // Update timeline steps based on current step
+  // Update timeline steps based on freelancer's progress
   const getUpdatedTimelineSteps = () => {
+    // Find the last completed step in stepStatus
+    const lastCompletedIdx = stepStatus.findIndex(s => !s.completed);
+    const completedIdx = lastCompletedIdx === -1 ? timelineSteps.length - 1 : lastCompletedIdx + 1;
     return timelineSteps.map((step, index) => ({
       ...step,
-      done: index < currentStep,
-      current: index === currentStep
+      done: index < completedIdx,
+      current: index === completedIdx
     }));
   };
 
@@ -250,7 +293,7 @@ const JobInProgress: React.FC = () => {
       </Box>
 
       {/* Main Content */}
-      <Box sx={{ maxWidth: 1200, mx: 'auto', mt: 4, display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+      <Box sx={{ maxWidth: 1400, mx: 'auto', mt: 4, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
         {/* Left: Service Professional & Timeline */}
         <Box sx={{ flex: 1.5, minWidth: 0 }}>
           {/* Service Professional Card */}
@@ -333,12 +376,13 @@ const JobInProgress: React.FC = () => {
                       fontWeight={step.current ? 900 : 700} 
                       color={step.current ? '#2563eb' : step.done ? '#15803d' : '#6b7280'} 
                       fontSize={17}
+                      component="span"
                     >
                       {step.label}
                     </Typography>
-                    <Typography color="#6b7280" fontSize={15}>{step.desc}</Typography>
+                    <Typography color="#6b7280" fontSize={15} component="span">{step.desc}</Typography>
                     {step.current && (
-                      <Typography color="#2563eb" fontSize={14} fontWeight={700}>
+                      <Typography color="#2563eb" fontSize={14} fontWeight={700} component="span">
                         Currently in progress
                       </Typography>
                     )}
@@ -351,6 +395,33 @@ const JobInProgress: React.FC = () => {
               ))}
             </Box>
           </Paper>
+
+          {/* Payment Button */}
+          {((getUpdatedTimelineSteps()[5]?.current || getUpdatedTimelineSteps()[5]?.done) && !paymentComplete) && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+              <Button
+                variant="contained"
+                onClick={() => setShowPaymentModal(true)}
+                sx={{
+                  bgcolor: '#22c55e',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 16,
+                  py: 2,
+                  px: 4,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  '&:hover': {
+                    bgcolor: '#16a34a'
+                  },
+                  boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)'
+                }}
+                startIcon={<CheckCircleIcon />}
+              >
+                Complete Payment
+              </Button>
+            </Box>
+          )}
         </Box>
 
         {/* Right: AI Job Analysis & Quick Actions */}
@@ -399,13 +470,38 @@ const JobInProgress: React.FC = () => {
                 endIcon={<span style={{ marginLeft: 'auto', color: '#2563eb', fontSize: 22 }}>→</span>}
                 onClick={() => handleMessage(freelancer.id, freelancer.full_name, freelancer.professional_title, freelancer.avatar_url)}
               >
-                Message <Typography color="#6b7280" fontWeight={500} fontSize={15} ml={2}>Real-time chat</Typography>
+                Message <Typography component="span" color="#6b7280" fontWeight={500} fontSize={15} ml={2}>Real-time chat</Typography>
               </Button>
               <Divider />
-              <Button fullWidth sx={{ justifyContent: 'flex-start', bgcolor: '#e8f6ed', color: '#15803d', borderRadius: 0, p: 3, fontWeight: 700, fontSize: 17, textTransform: 'none', gap: 2 }} startIcon={<CallIcon sx={{ color: '#15803d', fontSize: 24 }} />} endIcon={<span style={{ marginLeft: 'auto', color: '#15803d', fontSize: 22 }}>→</span>}>Call <Typography color="#6b7280" fontWeight={500} fontSize={15} ml={2}>Direct contact</Typography></Button>
+              <Button fullWidth sx={{ justifyContent: 'flex-start', bgcolor: '#e8f6ed', color: '#15803d', borderRadius: 0, p: 3, fontWeight: 700, fontSize: 17, textTransform: 'none', gap: 2 }} startIcon={<CallIcon sx={{ color: '#15803d', fontSize: 24 }} />} endIcon={<span style={{ marginLeft: 'auto', color: '#15803d', fontSize: 22 }}>→</span>}>
+                Call <Typography component="span" color="#6b7280" fontWeight={500} fontSize={15} ml={2}>Direct contact</Typography>
+              </Button>
               <Divider />
-              <Button fullWidth sx={{ justifyContent: 'flex-start', bgcolor: '#f6e6f4', color: '#a259f7', borderRadius: 0, borderBottomLeftRadius: '18px', borderBottomRightRadius: '18px', p: 3, fontWeight: 700, fontSize: 17, textTransform: 'none', gap: 2 }} startIcon={<PhotoCameraIcon sx={{ color: '#a259f7', fontSize: 24 }} />} endIcon={<span style={{ marginLeft: 'auto', color: '#a259f7', fontSize: 22 }}>→</span>}>Photos <Typography color="#6b7280" fontWeight={500} fontSize={15} ml={2}>Live progress</Typography></Button>
+              <Button fullWidth sx={{ justifyContent: 'flex-start', bgcolor: '#f6e6f4', color: '#a259f7', borderRadius: 0, borderBottomLeftRadius: '18px', borderBottomRightRadius: '18px', p: 3, fontWeight: 700, fontSize: 17, textTransform: 'none', gap: 2 }} startIcon={<PhotoCameraIcon sx={{ color: '#a259f7', fontSize: 24 }} />} endIcon={<span style={{ marginLeft: 'auto', color: '#a259f7', fontSize: 22 }}>→</span>}>
+                Photos <Typography component="span" color="#6b7280" fontWeight={500} fontSize={15} ml={2}>Live progress</Typography>
+              </Button>
             </Box>
+          </Paper>
+
+          {/* Photos Section */}
+          <Paper elevation={0} sx={{ borderRadius: '18px', p: 4, mb: 4, boxShadow: '0 2px 12px #e5eaf1' }}>
+            <Typography fontWeight={900} color="#23263a" fontSize={20} mb={2}>Photos</Typography>
+            {stepStatus.filter(s => s.photo).length === 0 ? (
+              <div style={{ color: '#888', textAlign: 'center', padding: 16 }}>No photos uploaded yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {stepStatus.map((s, i) =>
+                  s.photo ? (
+                    <img
+                      key={i}
+                      src={s.photo}
+                      alt={`Step ${i + 1} photo`}
+                      style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: '1.5px solid #e5eaf1' }}
+                    />
+                  ) : null
+                )}
+              </div>
+            )}
           </Paper>
         </Box>
       </Box>
@@ -489,7 +585,7 @@ const JobInProgress: React.FC = () => {
                       boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                     }}
                   >
-                    <Typography fontSize={15}>{message.text}</Typography>
+                    <Typography fontSize={15} component="span">{message.text}</Typography>
                   </Paper>
                   <Typography 
                     variant="caption" 
@@ -499,6 +595,7 @@ const JobInProgress: React.FC = () => {
                       color: '#6b7280',
                       textAlign: message.sender === 'client' ? 'right' : 'left'
                     }}
+                    component="span"
                   >
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Typography>
@@ -556,6 +653,70 @@ const JobInProgress: React.FC = () => {
           recipient={selectedUser}
         />
       )}
+
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onClose={() => {}} maxWidth="xs" fullWidth>
+        {!paymentComplete ? (
+          <>
+            <DialogTitle>Pay for Your Job</DialogTitle>
+            <DialogContent>
+              <div style={{ marginBottom: 18 }}>
+                <b>Job:</b> {jobtitle}<br />
+                <b>Amount:</b> {aiReport?.costEstimate || '$150-$300'}<br />
+                <b>Duration:</b> {aiReport?.timeFrame || '2-3 hours'}
+              </div>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel id="payment-method-label">Payment Method</InputLabel>
+                <Select
+                  labelId="payment-method-label"
+                  value={paymentMethod}
+                  label="Payment Method"
+                  onChange={e => setPaymentMethod(e.target.value)}
+                >
+                  <MenuItem value="Credit Card">Credit Card</MenuItem>
+                  <MenuItem value="PayPal">PayPal</MenuItem>
+                  <MenuItem value="Google Pay">Google Pay</MenuItem>
+                  <MenuItem value="Apple Pay">Apple Pay</MenuItem>
+                </Select>
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <button
+                style={{
+                  background: '#2563eb', color: '#fff', borderRadius: 8, fontWeight: 700, fontSize: 16, padding: '10px 28px', border: 'none', cursor: 'pointer'
+                }}
+                onClick={() => {
+                  setPaymentComplete(true);
+                  // Mark all steps up to and including Payment Done as completed
+                  setStepStatus(prev => {
+                    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const updated = prev.map((step, idx) =>
+                      idx <= 5
+                        ? { ...step, completed: true, time: step.time || now }
+                        : step
+                    );
+                    if (jobDetails?.job_id) {
+                      localStorage.setItem(`livejob_steps_${jobDetails.job_id}`, JSON.stringify(updated));
+                    }
+                    return updated;
+                  });
+                  setTimeout(() => {
+                    setShowPaymentModal(false);
+                  }, 2000);
+                }}
+              >
+                Confirm & Pay
+              </button>
+            </DialogActions>
+          </>
+        ) : (
+          <DialogContent sx={{ textAlign: 'center', py: 6 }}>
+            <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 60, mb: 2 }} />
+            <div style={{ fontWeight: 700, fontSize: 22, marginBottom: 8 }}>Thank you for your payment!</div>
+            <div style={{ color: '#6b7280', fontSize: 16 }}>Your job is now complete.</div>
+          </DialogContent>
+        )}
+      </Dialog>
     </Box>
   );
 };

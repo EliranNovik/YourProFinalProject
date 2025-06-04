@@ -14,6 +14,8 @@ import LiveJobsRightPanelStyles from './LiveJobsRightPanel.module.css';
 import MessageModal from '../components/MessageModal';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { Button } from '@mui/material';
+import { v4 as uuidv4 } from 'uuid';
+import Snackbar from '@mui/material/Snackbar';
 
 const stepLabels = [
   'Arrive & Confirm',
@@ -35,6 +37,15 @@ function getStepStatusFromStorage(jobId: any, defaultStepStatus: any) {
 function setStepStatusToStorage(jobId: any, stepStatus: any) {
   const key = `livejob_steps_${jobId}`;
   localStorage.setItem(key, JSON.stringify(stepStatus));
+}
+
+// Add: Helper to update stepStatus in Supabase
+async function updateStepStatusInSupabase(jobId: any, stepStatus: any) {
+  if (!jobId) return;
+  await supabase
+    .from('live_jobs')
+    .update({ step_status: stepStatus })
+    .eq('job_id', jobId);
 }
 
 const LiveJobs: React.FC = () => {
@@ -61,6 +72,7 @@ const LiveJobs: React.FC = () => {
     professional_title?: string;
     avatar_url?: string;
   } | null>(null);
+  const [photoUploadSuccess, setPhotoUploadSuccess] = useState(false);
 
   // Fetch current user (freelancer) and all jobs
   useEffect(() => {
@@ -117,7 +129,7 @@ const LiveJobs: React.FC = () => {
       if (job?.client_id) {
         const { data: userClient, error: cErr } = await supabase
           .from('users')
-          .select('id, full_name, email')
+          .select('id, full_name, email, avatar_url, professional_title')
           .eq('id', job.client_id)
           .single();
         if (userClient && userClient.full_name) {
@@ -125,7 +137,7 @@ const LiveJobs: React.FC = () => {
         } else {
           const { data: profileClient, error: pErr } = await supabase
             .from('client_profiles')
-            .select('id, full_name, display_name')
+            .select('id, full_name, display_name, avatar_url, professional_title')
             .eq('user_id', job.client_id)
             .single();
           if (profileClient) {
@@ -140,40 +152,147 @@ const LiveJobs: React.FC = () => {
     // eslint-disable-next-line
   }, [selectedJobId]);
 
+  useEffect(() => {
+    if (jobData?.job_id) {
+      const storedStatus = getStepStatusFromStorage(jobData.job_id, defaultStepStatus);
+      setStepStatus(storedStatus);
+      
+      // If we have stored status, find the first incomplete step
+      const firstIncompleteStep = storedStatus.findIndex((step: { completed: boolean }) => !step.completed);
+      setCurrentStep(firstIncompleteStep === -1 ? storedStatus.length - 1 : firstIncompleteStep);
+    }
+  }, [jobData?.job_id]);
+
+  useEffect(() => {
+    if (!jobData?.job_id) return;
+
+    // Subscribe to changes in the live_jobs table
+    const subscription = supabase
+      .channel(`live_jobs_${jobData.job_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'live_jobs',
+          filter: `job_id=eq.${jobData.job_id}`
+        },
+        (payload) => {
+          if (payload.new.step_status) {
+            setStepStatus(payload.new.step_status);
+            setStepStatusToStorage(jobData.job_id, payload.new.step_status);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [jobData?.job_id]);
+
   const handleStepClick = (idx: number) => {
     if (idx !== currentStep) return;
     // Arrive & Confirm step
     if (idx === 0) {
-      const now = new Date();
-      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const newTimes = [...stepStatus.map(s => ({ ...s, time: time }))];
-      setStepStatus(newTimes);
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const updatedStepStatus = [...stepStatus];
+      
+      // Only mark first step (arrived) as completed
+      updatedStepStatus[0] = {
+        ...updatedStepStatus[0],
+        completed: true,
+        time: now
+      };
+      
+      // Update state
+      setStepStatus(updatedStepStatus);
+      
+      // Update local storage
+      if (jobData?.job_id) {
+        setStepStatusToStorage(jobData.job_id, updatedStepStatus);
+      }
+      
+      // Update Supabase
+      if (jobData?.job_id) {
+        updateStepStatusInSupabase(jobData.job_id, updatedStepStatus);
+      }
+      
+      // Move to next step
       setCurrentStep(1);
     }
   };
 
-  // Remove DB step status update, use localStorage only
-  const handleAddPhoto = async (idx: any, photoValue: any) => {
-    const newStatus = stepStatus.map((s, i) => i === idx ? { ...s, photo: photoValue } : s);
+  // Update handleAddPhoto to upload to Supabase Storage and save URL
+  const handleAddPhoto = async (idx: any, file: File) => {
+    if (!file || !jobData?.job_id) {
+      console.error('No file or job_id', { file, jobId: jobData?.job_id });
+      return;
+    }
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${jobData.job_id}-step${idx + 1}-${uuidv4()}.${fileExt}`;
+    console.log('Uploading file:', file, 'as', fileName);
+    const { data, error } = await supabase.storage.from('job-photos').upload(fileName, file, { upsert: true });
+    if (error) {
+      console.error('Supabase upload error:', error);
+      alert('Failed to upload photo: ' + error.message);
+      return;
+    }
+    const publicUrl = supabase.storage.from('job-photos').getPublicUrl(fileName).data.publicUrl;
+    console.log('Public URL:', publicUrl);
+    const newStatus = stepStatus.map((s, i) => i === idx ? { ...s, photo: publicUrl } : s);
     setStepStatus(newStatus);
     setStepStatusToStorage(jobData.job_id, newStatus);
+    await updateStepStatusInSupabase(jobData.job_id, newStatus);
+    setPhotoUploadSuccess(true);
   };
 
   const handleAddNote = async (idx: any, noteValue: any) => {
     const newStatus = stepStatus.map((s, i) => i === idx ? { ...s, note: noteValue } : s);
     setStepStatus(newStatus);
     setStepStatusToStorage(jobData.job_id, newStatus);
+    await updateStepStatusInSupabase(jobData.job_id, newStatus);
   };
 
   const handleCompleteStep = async (idx: any) => {
-    if (idx !== currentStep) return;
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const newStatus = stepStatus.map((s, i) => i === idx ? { ...s, completed: true, time } : s);
-    setStepStatus(newStatus);
-    setStepStatusToStorage(jobData.job_id, newStatus);
-    const next = idx + 1;
-    if (next < stepLabels.length) setCurrentStep(next);
+    if (idx < 0 || idx >= stepStatus.length) return;
+    
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const updatedStepStatus = [...stepStatus];
+    
+    // Mark current step as completed
+    updatedStepStatus[idx] = {
+      ...updatedStepStatus[idx],
+      completed: true,
+      time: now
+    };
+    
+    // If this is the first step (arrived), also mark the second step (confirmed) as completed
+    if (idx === 0) {
+      updatedStepStatus[1] = {
+        ...updatedStepStatus[1],
+        completed: true,
+        time: now
+      };
+    }
+    
+    // Update state
+    setStepStatus(updatedStepStatus);
+    
+    // Update local storage
+    if (jobData?.job_id) {
+      setStepStatusToStorage(jobData.job_id, updatedStepStatus);
+    }
+    
+    // Update Supabase
+    if (jobData?.job_id) {
+      await updateStepStatusInSupabase(jobData.job_id, updatedStepStatus);
+    }
+    
+    // Move to next step if not the last one
+    if (idx < stepStatus.length - 1) {
+      setCurrentStep(idx + 1);
+    }
   };
 
   // Progress bar width
@@ -330,20 +449,6 @@ const LiveJobs: React.FC = () => {
             <div className="progress-bar-bg">
               <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
             </div>
-            <div className="job-actions">
-              <Button
-                variant="outlined"
-                startIcon={<ChatBubbleOutlineIcon />}
-                onClick={() => handleMessage(
-                  jobData.freelancer_id,
-                  jobData.freelancer_name,
-                  jobData.freelancer_title,
-                  jobData.freelancer_avatar
-                )}
-              >
-                Message
-              </Button>
-            </div>
           </div>
 
           <div className="steps-list">
@@ -395,6 +500,24 @@ const LiveJobs: React.FC = () => {
                 </div>
               );
             })}
+            {/* Client paid message */}
+            {stepStatus[5]?.completed && (
+              <div style={{
+                background: '#e8f6ed',
+                color: '#15803d',
+                borderRadius: 12,
+                padding: '18px 24px',
+                marginTop: 12,
+                fontWeight: 700,
+                fontSize: 18,
+                textAlign: 'center',
+                boxShadow: '0 2px 8px #22c55e22',
+                border: '2px solid #22c55e55'
+              }}>
+                <CheckCircleIcon style={{ verticalAlign: 'middle', marginRight: 8, color: '#22c55e' }} />
+                Client paid
+              </div>
+            )}
           </div>
 
           {/* Simulated Add Photo Dialog */}
@@ -402,14 +525,28 @@ const LiveJobs: React.FC = () => {
             <div className="modal-overlay">
               <div className="modal-content">
                 <h3>Add Photo</h3>
-                <input type="file" accept="image/*" onChange={async e => {
-                  await handleAddPhoto(showPhotoInput.idx!, 'photo');
-                  setShowPhotoInput({ open: false, idx: null });
-                }} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      await handleAddPhoto(showPhotoInput.idx!, file);
+                      setShowPhotoInput({ open: false, idx: null });
+                    }
+                  }}
+                />
                 <button className="close-btn" onClick={() => setShowPhotoInput({ open: false, idx: null })}>Close</button>
               </div>
             </div>
           )}
+          <Snackbar
+            open={photoUploadSuccess}
+            autoHideDuration={3000}
+            onClose={() => setPhotoUploadSuccess(false)}
+            message="Photo uploaded successfully!"
+          />
           {/* Simulated Add Note Dialog */}
           {showNoteInput.open && showNoteInput.idx !== null && (
             <div className="modal-content">
@@ -460,7 +597,20 @@ const LiveJobs: React.FC = () => {
             <span className={LiveJobsRightPanelStyles.cardTitle}>Messages</span>
           </div>
           <div className={LiveJobsRightPanelStyles.cardBody}>
-            <div className={LiveJobsRightPanelStyles.messagesPlaceholder}>Chat coming soon...</div>
+            <Button
+              variant="outlined"
+              startIcon={<ChatBubbleOutlineIcon />}
+              sx={{ mt: 2, borderRadius: 2, fontWeight: 700 }}
+              onClick={() => handleMessage(
+                clientProfile?.id,
+                clientProfile?.full_name || clientProfile?.display_name,
+                clientProfile?.professional_title,
+                clientProfile?.avatar_url
+              )}
+              fullWidth
+            >
+              Message
+            </Button>
           </div>
         </div>
         {/* Photos Card */}
@@ -470,7 +620,45 @@ const LiveJobs: React.FC = () => {
             <span className={LiveJobsRightPanelStyles.cardTitle}>Photos</span>
           </div>
           <div className={LiveJobsRightPanelStyles.cardBody}>
-            <div className={LiveJobsRightPanelStyles.photosPlaceholder}>Photos coming soon...</div>
+            {stepStatus.filter(s => s.photo).length === 0 ? (
+              <div style={{ color: '#888', textAlign: 'center', padding: 16 }}>No photos uploaded yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {stepStatus.map((s, i) =>
+                  s.photo ? (
+                    <img
+                      key={i}
+                      src={s.photo}
+                      alt={`Step ${i + 1} photo`}
+                      style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: '1.5px solid #e5eaf1' }}
+                    />
+                  ) : null
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Notes Card */}
+        <div className={LiveJobsRightPanelStyles.card + ' ' + LiveJobsRightPanelStyles.photosCard}>
+          <div className={LiveJobsRightPanelStyles.cardHeader}>
+            <span className={LiveJobsRightPanelStyles.cardIcon}>📝</span>
+            <span className={LiveJobsRightPanelStyles.cardTitle}>Notes</span>
+          </div>
+          <div className={LiveJobsRightPanelStyles.cardBody}>
+            {stepStatus.filter(s => s.note).length === 0 ? (
+              <div style={{ color: '#888', textAlign: 'center', padding: 16 }}>No notes added yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {stepStatus.map((s, i) =>
+                  s.note ? (
+                    <div key={i} style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 14px', border: '1.5px solid #e5eaf1' }}>
+                      <div style={{ fontWeight: 700, color: '#2563eb', fontSize: 15, marginBottom: 2 }}>Step {i + 1}</div>
+                      <div style={{ color: '#23263a', fontSize: 15 }}>{s.note}</div>
+                    </div>
+                  ) : null
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

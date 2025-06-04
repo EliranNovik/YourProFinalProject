@@ -17,9 +17,10 @@
   background: #fff;
   border-radius: 24px;
   box-shadow: 0 6px 32px #e5eaf1;
-  padding: 3.5rem 3rem;
+  padding: 3rem 2.5rem;
   margin-bottom: 48px;
-  min-width: 480px;
+  min-width: 320px;
+  max-width: 900px;
   min-height: 220px;
 }
 

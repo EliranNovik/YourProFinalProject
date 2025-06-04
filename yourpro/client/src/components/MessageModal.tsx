@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Box, Avatar, Typography, IconButton, TextField, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { supabase } from '../config/supabase';
@@ -16,42 +16,86 @@ interface MessageModalProps {
 
 const MessageModal: React.FC<MessageModalProps> = ({ open, onClose, recipient }) => {
   const [initialMessage, setInitialMessage] = useState('');
+  const [messages, setMessages] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch current user and messages
+  useEffect(() => {
+    if (!open || !recipient) return;
+    let isMounted = true;
+    async function fetchData() {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setCurrentUser(user);
+      // Get conversation id
+      const { data: conversationId, error: convError } = await supabase.rpc('get_or_create_conversation', {
+        user1_id: user.id,
+        user2_id: recipient.id
+      });
+      if (convError || !conversationId) {
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
+      // Fetch messages
+      const { data: msgs, error: msgErr } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+      if (isMounted) {
+        setMessages(msgs || []);
+        setLoading(false);
+      }
+    }
+    fetchData();
+    return () => { isMounted = false; };
+  }, [open, recipient]);
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendInitialMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipient || !initialMessage.trim()) return;
-
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) return;
-
+    if (!recipient || !initialMessage.trim() || !currentUser) return;
+    // Optimistically add message
+    const optimistic = {
+      id: `optimistic-${Date.now()}`,
+      sender_id: currentUser.id,
+      content: initialMessage.trim(),
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, optimistic]);
+    setInitialMessage('');
     try {
-      // Create conversation
-      const { data: conversation, error: convError } = await supabase.rpc('get_or_create_conversation', {
+      // Get conversation id
+      const { data: conversationId, error: convError } = await supabase.rpc('get_or_create_conversation', {
         user1_id: currentUser.id,
         user2_id: recipient.id
       });
-
-      if (convError) throw convError;
-
-      // Send initial message
+      if (convError || !conversationId) throw convError;
+      // Send message
       const { error: msgError } = await supabase
         .from('messages')
         .insert({
-          conversation_id: conversation,
+          conversation_id: conversationId,
           sender_id: currentUser.id,
-          content: initialMessage.trim()
+          content: optimistic.content
         });
-
       if (msgError) throw msgError;
-
-      // Close modal and reset state
-      onClose();
-      setInitialMessage('');
-      
-      // Show success message
-      alert('Message sent successfully! You can continue the conversation in the Messages page.');
+      // Refetch messages
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+      setMessages(msgs || []);
     } catch (error) {
-      console.error('Error sending message:', error);
       alert('Failed to send message. Please try again.');
     }
   };
@@ -62,6 +106,7 @@ const MessageModal: React.FC<MessageModalProps> = ({ open, onClose, recipient })
       onClose={() => {
         onClose();
         setInitialMessage('');
+        setMessages([]);
       }}
       aria-labelledby="message-modal-title"
     >
@@ -98,17 +143,45 @@ const MessageModal: React.FC<MessageModalProps> = ({ open, onClose, recipient })
             onClick={() => {
               onClose();
               setInitialMessage('');
+              setMessages([]);
             }}
             sx={{ position: 'absolute', right: 16, top: 16 }}
           >
             <CloseIcon />
           </IconButton>
         </Box>
+        {/* Messages container */}
+        <Box sx={{ flex: 1, minHeight: 180, maxHeight: 320, overflowY: 'auto', mb: 2, bgcolor: '#f8fafc', borderRadius: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {loading ? (
+            <Typography color="text.secondary">Loading messages...</Typography>
+          ) : messages.length === 0 ? (
+            <Typography color="text.secondary">No messages yet. Start the conversation!</Typography>
+          ) : (
+            messages.map((msg) => (
+              <Box key={msg.id} sx={{ display: 'flex', justifyContent: msg.sender_id === currentUser?.id ? 'flex-end' : 'flex-start' }}>
+                <Box sx={{
+                  bgcolor: msg.sender_id === currentUser?.id ? '#2563eb' : '#fff',
+                  color: msg.sender_id === currentUser?.id ? '#fff' : '#23263a',
+                  borderRadius: 2,
+                  px: 2,
+                  py: 1,
+                  maxWidth: 340,
+                  boxShadow: 1,
+                  mb: 0.5
+                }}>
+                  <Typography fontSize={15}>{msg.content}</Typography>
+                  <Typography variant="caption" sx={{ color: msg.sender_id === currentUser?.id ? '#e0e7ff' : '#888', mt: 0.5, display: 'block', textAlign: msg.sender_id === currentUser?.id ? 'right' : 'left' }}>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Typography>
+                </Box>
+              </Box>
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </Box>
         <form onSubmit={handleSendInitialMessage} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField
             fullWidth
             multiline
-            rows={6}
+            rows={3}
             placeholder="Type your message..."
             value={initialMessage}
             onChange={(e) => setInitialMessage(e.target.value)}

@@ -26,7 +26,17 @@ const ClientJobsInProgress: React.FC = () => {
         .select('*')
         .eq('client_id', user.id)
         .order('created_at', { ascending: false });
-      setJobs(jobsData || []);
+      // Fetch all jobs for this client from the live_jobs table
+      const { data: liveJobs, error: liveJobsError } = await supabase
+        .from('live_jobs')
+        .select('*')
+        .eq('client_id', user.id)
+        .order('created_at', { ascending: false });
+      // Merge jobs by job_id (avoid duplicates)
+      const jobsMap = new Map();
+      (jobsData || []).forEach(j => jobsMap.set(j.job_id, { ...j, source: 'requests' }));
+      (liveJobs || []).forEach(j => jobsMap.set(j.job_id, { ...j, source: 'live_jobs' }));
+      setJobs(Array.from(jobsMap.values()));
       setLoading(false);
     }
     fetchJobs();
@@ -52,8 +62,8 @@ const ClientJobsInProgress: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', background: '#fff' }}>
-      {/* Sidebar */}
-      <Paper elevation={2} sx={{ width: 340, minWidth: 300, maxWidth: 400, height: '100vh', borderRadius: 0, borderRight: '1.5px solid #e5e7eb', p: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* Sidebar - fixed to the left edge, like LiveJobs */}
+      <Box sx={{ position: 'fixed', left: 0, top: 0, bottom: 0, width: 300, minWidth: 260, maxWidth: 340, height: '100vh', borderRight: '1.5px solid #e5e7eb', bgcolor: '#fff', zIndex: 100, display: 'flex', flexDirection: 'column', p: 0 }}>
         <Box sx={{ p: 3, borderBottom: '1.5px solid #e5e7eb', bgcolor: '#fff' }}>
           <Typography variant="h5" fontWeight={900} mb={2} color="#23263a">My Jobs</Typography>
           <TextField
@@ -114,16 +124,18 @@ const ClientJobsInProgress: React.FC = () => {
             </List>
           )}
         </Box>
-      </Paper>
-      {/* Main Content */}
-      <Box sx={{ flex: 1, minHeight: '100vh', bgcolor: '#f8fafc', p: 0 }}>
-        {selectedJob ? (
-          <JobInProgress key={selectedJob.job_id} />
-        ) : (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-            <Typography color="#888">Select a job to view details</Typography>
-          </Box>
-        )}
+      </Box>
+      {/* Main Content - add left margin to account for fixed sidebar */}
+      <Box sx={{ flex: 1, minHeight: '100vh', bgcolor: '#fff', p: 0, ml: '300px', maxWidth: 'calc(100vw - 300px)', display: 'flex', justifyContent: 'flex-start' }}>
+        <div style={{ width: '100%', maxWidth: 1400, margin: '0 auto', padding: '40px 60px 40px 0' }}>
+          {selectedJob ? (
+            <JobInProgress key={selectedJob.job_id} />
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+              <Typography color="#888">Select a job to view details</Typography>
+            </Box>
+          )}
+        </div>
       </Box>
     </Box>
   );
