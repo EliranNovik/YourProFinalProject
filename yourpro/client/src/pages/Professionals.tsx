@@ -85,6 +85,9 @@ const Professionals: React.FC = () => {
   const [minRate, setMinRate] = useState('');
   const [maxRate, setMaxRate] = useState('');
   const [starFilter, setStarFilter] = useState('');
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedFreelancer, setSelectedFreelancer] = useState<DBFreelancer | null>(null);
+  const [initialMessage, setInitialMessage] = useState('');
 
   // Combine and randomize filtered results
   const combinedResults = React.useMemo(() => {
@@ -142,37 +145,54 @@ const Professionals: React.FC = () => {
     if (!input) return [];
 
     const allTerms = [
-      ...FREELANCERS.flatMap(freelancer => [...freelancer.skills, freelancer.title]),
-      ...COMPANIES.flatMap(company => [...company.specialties, company.industry])
-    ];
+      ...FREELANCERS.flatMap(freelancer => [
+        freelancer.name,
+        freelancer.title,
+        ...freelancer.skills
+      ]),
+      ...COMPANIES.flatMap(company => [
+        company.name,
+        company.industry,
+        ...company.specialties
+      ]),
+      ...dbFreelancers.flatMap(freelancer => [
+        freelancer.full_name,
+        freelancer.professional_title,
+        ...(Array.isArray(freelancer.skills) ? freelancer.skills : [])
+      ])
+    ].filter(Boolean);
 
     const uniqueTerms = Array.from(new Set(allTerms));
-    return uniqueTerms
+    const suggestions = uniqueTerms
       .filter(term => term.toLowerCase().includes(input.toLowerCase()))
       .slice(0, 5);
+
+    return suggestions;
   };
 
   // Function to calculate relevance score for a freelancer or company based on search query
   const calculateRelevanceScore = (item: Freelancer | Company, query: string) => {
+    if (!item || !query) return 0;
+    
     const searchTerms = query.toLowerCase().split(' ');
     let score = 0;
 
     searchTerms.forEach(term => {
       // Check name and title/industry
-      if (item.name.toLowerCase().includes(term)) score += 5;
-      if ('title' in item && item.title.toLowerCase().includes(term)) score += 5;
-      if ('industry' in item && item.industry.toLowerCase().includes(term)) score += 5;
-      if (item.location.toLowerCase().includes(term)) score += 6;
+      if (item.name?.toLowerCase().includes(term)) score += 5;
+      if ('title' in item && item.title?.toLowerCase().includes(term)) score += 5;
+      if ('industry' in item && item.industry?.toLowerCase().includes(term)) score += 5;
+      if (item.location?.toLowerCase().includes(term)) score += 6;
       
       // Check skills/specialties
-      if ('skills' in item) {
+      if ('skills' in item && Array.isArray(item.skills)) {
         item.skills.forEach(skill => {
-          if (skill.toLowerCase().includes(term)) score += 4;
+          if (skill?.toLowerCase().includes(term)) score += 4;
         });
       }
-      if ('specialties' in item) {
+      if ('specialties' in item && Array.isArray(item.specialties)) {
         item.specialties.forEach(specialty => {
-          if (specialty.toLowerCase().includes(term)) score += 4;
+          if (specialty?.toLowerCase().includes(term)) score += 4;
         });
       }
     });
@@ -180,44 +200,128 @@ const Professionals: React.FC = () => {
     return score;
   };
 
+  // Filtering logic
+  const applyFilters = (freelancers: Freelancer[]) => {
+    return freelancers.filter(f => {
+      // Location filter
+      if (locationFilter && f.location !== locationFilter) return false;
+      // Hourly rate filter
+      const rateNum = parseInt((f.hourlyRate || '').replace(/[^\d]/g, ''));
+      if (minRate && (!rateNum || rateNum < parseInt(minRate))) return false;
+      if (maxRate && (!rateNum || rateNum > parseInt(maxRate))) return false;
+      // Star filter
+      if (starFilter && (!f.rating || f.rating < parseFloat(starFilter))) return false;
+      return true;
+    });
+  };
+
   const handleSearch = () => {
     if (!searchQuery.trim()) {
-      setFilteredFreelancers(FREELANCERS);
+      // If no search query, just apply filters to all freelancers
+      const allFreelancers = [...FREELANCERS, ...dbFreelancers.map(mapDbFreelancerToMock)];
+      setFilteredFreelancers(applyFilters(allFreelancers));
       setFilteredCompanies(COMPANIES);
       setSearchSuggestions([]);
       return;
     }
 
-    // Filter freelancers
-    const scoredFreelancers = FREELANCERS.map(freelancer => ({
-      freelancer,
-      score: calculateRelevanceScore(freelancer, searchQuery)
-    }));
-    const filteredFreelancers = scoredFreelancers
-      .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(item => item.freelancer);
+    const searchTerms = searchQuery.toLowerCase().split(' ');
 
-    // Filter companies
-    const scoredCompanies = COMPANIES.map(company => ({
-      company,
-      score: calculateRelevanceScore(company, searchQuery)
-    }));
-    const filteredCompanies = scoredCompanies
-      .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(item => item.company);
+    // First apply search to mock freelancers
+    let searchResults = FREELANCERS.filter(freelancer => {
+      const searchableText = [
+        freelancer.name,
+        freelancer.title,
+        freelancer.location,
+        ...freelancer.skills
+      ].map(text => text?.toLowerCase() || '').join(' ');
 
-    setFilteredFreelancers(filteredFreelancers);
+      return searchTerms.every(term => searchableText.includes(term));
+    });
+
+    // Then apply search to database freelancers
+    const dbSearchResults = dbFreelancers
+      .filter(f => f && f.full_name)
+      .map(mapDbFreelancerToMock)
+      .filter(freelancer => {
+        const searchableText = [
+          freelancer.name,
+          freelancer.title,
+          freelancer.location,
+          ...freelancer.skills
+        ].map(text => text?.toLowerCase() || '').join(' ');
+
+        return searchTerms.every(term => searchableText.includes(term));
+      });
+
+    // Combine results
+    searchResults = [...searchResults, ...dbSearchResults];
+
+    // Apply filters to search results
+    const filteredResults = applyFilters(searchResults);
+
+    // Update state
+    setFilteredFreelancers(filteredResults);
+
+    // Handle company search separately
+    const filteredCompanies = COMPANIES.filter(company => {
+      const searchableText = [
+        company.name,
+        company.industry,
+        company.location,
+        ...company.specialties
+      ].map(text => text?.toLowerCase() || '').join(' ');
+
+      return searchTerms.every(term => searchableText.includes(term));
+    });
+
     setFilteredCompanies(filteredCompanies);
     setSearchSuggestions([]);
   };
 
-  // When user types, update suggestions
+  // Update search suggestions
   useEffect(() => {
-    const suggestions = getSearchSuggestions(searchQuery);
+    if (!searchQuery.trim()) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    const allTerms = [
+      ...FREELANCERS.flatMap(freelancer => [
+        freelancer.name,
+        freelancer.title,
+        ...freelancer.skills
+      ]),
+      ...COMPANIES.flatMap(company => [
+        company.name,
+        company.industry,
+        ...company.specialties
+      ]),
+      ...dbFreelancers.flatMap(freelancer => [
+        freelancer.full_name,
+        freelancer.professional_title,
+        ...(Array.isArray(freelancer.skills) ? freelancer.skills : [])
+      ])
+    ].filter(Boolean);
+
+    const uniqueTerms = Array.from(new Set(allTerms));
+    const suggestions = uniqueTerms
+      .filter(term => term.toLowerCase().includes(searchQuery.toLowerCase()))
+      .slice(0, 5);
+
     setSearchSuggestions(suggestions);
-  }, [searchQuery]);
+  }, [searchQuery, dbFreelancers]);
+
+  // Apply filters whenever filter values change
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      const allFreelancers = [...FREELANCERS, ...dbFreelancers.map(mapDbFreelancerToMock)];
+      setFilteredFreelancers(applyFilters(allFreelancers));
+      setFilteredCompanies(COMPANIES);
+    } else {
+      handleSearch();
+    }
+  }, [locationFilter, minRate, maxRate, starFilter, searchQuery, dbFreelancers]);
 
   // Helper to get availability class
   const getAvailabilityClass = (hours: number) => {
@@ -239,8 +343,63 @@ const Professionals: React.FC = () => {
   };
 
   // Handler for Message Me
-  const handleMessage = (id: string, type: 'freelancer' | 'company') => {
-    navigate(`/message/${type}/${id}`);
+  const handleMessage = async (freelancerId: string) => {
+    // Only allow messaging for freelancers fetched from the DB
+    const dbFreelancer = dbFreelancers.find(f => String(f.user_id) === String(freelancerId));
+    if (!dbFreelancer) {
+      alert('Messaging is only enabled for freelancers fetched from the database.');
+      return;
+    }
+
+    // Get the logged-in user
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      alert('You must be logged in to send a message.');
+      return;
+    }
+
+    setSelectedFreelancer(dbFreelancer);
+    setShowMessageModal(true);
+  };
+
+  const handleSendInitialMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFreelancer || !initialMessage.trim()) return;
+
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) return;
+
+    try {
+      // Create conversation
+      const { data: conversation, error: convError } = await supabase.rpc('get_or_create_conversation', {
+        user1_id: currentUser.id,
+        user2_id: selectedFreelancer.user_id
+      });
+
+      if (convError) throw convError;
+
+      // Send initial message
+      const { error: msgError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversation,
+          sender_id: currentUser.id,
+          content: initialMessage.trim()
+        });
+
+      if (msgError) throw msgError;
+
+      // Close modal and reset state
+      setShowMessageModal(false);
+      setInitialMessage('');
+      setSelectedFreelancer(null);
+      
+      // Show success message
+      alert('Message sent successfully! You can continue the conversation in the Messages page.');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
+    }
   };
 
   const handlePackageClick = (type: 'freelancer' | 'company', id: string, name: string, packageData: any) => {
@@ -617,7 +776,7 @@ const Professionals: React.FC = () => {
             <Button
               variant="outlined"
               className="message-button"
-              onClick={e => { e.preventDefault(); handleMessage(freelancer.id.toString(), 'freelancer'); }}
+              onClick={e => { e.preventDefault(); handleMessage(freelancer.id); }}
               startIcon={<ChatBubbleOutlineIcon />}
             >
               Message
@@ -694,7 +853,7 @@ const Professionals: React.FC = () => {
             </Button>
             <Button
               variant="outlined"
-              onClick={e => { e.preventDefault(); handleMessage(company.id.toString(), 'company'); }}
+              onClick={e => { e.preventDefault(); handleMessage(company.name); }}
             >
               Message
             </Button>
@@ -793,230 +952,222 @@ const Professionals: React.FC = () => {
     setLocationSuggestions(matches.slice(0, 6));
   }, [locationInput, uniqueLocations]);
 
-  // Filtering logic
-  const applyFilters = (freelancers: Freelancer[]) => {
-    return freelancers.filter(f => {
-      // Location filter
-      if (locationFilter && f.location !== locationFilter) return false;
-      // Hourly rate filter
-      const rateNum = parseInt((f.hourlyRate || '').replace(/[^\d]/g, ''));
-      if (minRate && (!rateNum || rateNum < parseInt(minRate))) return false;
-      if (maxRate && (!rateNum || rateNum > parseInt(maxRate))) return false;
-      // Star filter
-      if (starFilter && (!f.rating || f.rating < parseFloat(starFilter))) return false;
-      return true;
-    });
-  };
-
-  // Apply filters to both mock and db freelancers
-  const filteredMockFreelancers = applyFilters(FREELANCERS);
-  const filteredDbFreelancers = applyFilters(dbFreelancers.map(mapDbFreelancerToMock));
-
   return (
     <div className="with-navbar-padding">
       <div className="professionals-container">
         <div className="search-section">
           <h1>Find Professionals</h1>
-          <Box sx={{
-            p: { xs: 2, sm: 3 },
-            borderRadius: 3,
-            maxWidth: 1200,
-            width: '100%',
-            mx: 'auto',
-            mb: 3,
-            background: '#fff',
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)',
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}>
-            <form onSubmit={e => { e.preventDefault(); handleSearch(); }}
+          <div
+            className="search-filter-bar-responsive"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 32,
+              width: '100%',
+              maxWidth: 1400,
+              margin: '0 auto',
+              marginBottom: 32,
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            {/* Search Icon in its own pill, now acts as the search button */}
+            <div
+              className="search-icon-pill"
               style={{
+                background: '#fafdff',
+                borderRadius: '999px',
+                boxShadow: '0 2px 8px 0 rgba(0,0,0,0.06)',
+                width: 80,
+                height: 80,
                 display: 'flex',
-                flexWrap: 'nowrap',
-                gap: 12,
-                width: '100%',
                 alignItems: 'center',
-                marginBottom: 0,
                 justifyContent: 'center',
-                overflowX: 'auto',
-                WebkitOverflowScrolling: 'touch',
-              }}>
-              <TextField
-                variant="outlined"
-                placeholder="Search by skills, expertise, or industry..."
+                marginRight: 0,
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+              onClick={handleSearch}
+              title="Search"
+            >
+              <SearchIcon sx={{ color: '#2563eb', fontSize: 38 }} />
+            </div>
+            {/* Search Input */}
+            <div
+              className="search-input-pill"
+              style={{
+                background: '#fafdff',
+                borderRadius: '999px',
+                boxShadow: '0 2px 8px 0 rgba(0,0,0,0.06)',
+                width: 450,
+                height: 80,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 24px',
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Type to search..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
-                  ),
-                }}
-                sx={{
-                  background: '#f7f8fa',
-                  borderRadius: 2.5,
-                  border: '1px solid #e5e7eb',
-                  boxShadow: 'none',
-                  minWidth: 250,
-                  maxWidth: 400,
-                  flex: '0 0 400px',
-                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                  '&:hover': { background: '#f1f3f6' },
-                  transition: 'background 0.2s',
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 24,
+                  color: '#7b8794',
+                  width: '100%',
+                  minWidth: 0,
                 }}
               />
-              <Box sx={{ position: 'relative', minWidth: 150, maxWidth: 170, flex: '0 0 150px' }}>
-                <TextField
-                  label="Location"
-                  value={locationInput}
-                  onChange={e => {
-                    setLocationInput(e.target.value);
-                    setLocationFilter('');
-                  }}
-                  sx={{
-                    background: '#f7f8fa',
-                    borderRadius: 2.5,
-                    border: '1px solid #e5e7eb',
-                    boxShadow: 'none',
-                    width: '100%',
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '&:hover': { background: '#f1f3f6' },
-                    transition: 'background 0.2s',
-                  }}
-                  autoComplete="off"
-                />
-                {locationInput && locationSuggestions.length > 0 && (
-                  <Box sx={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e1e1e1', borderRadius: 2, mt: 0.5, boxShadow: 3, zIndex: 1000 }}>
-                    {locationSuggestions.map((loc, idx) => (
-                      <Box
-                        key={loc}
-                        sx={{ p: 1.2, cursor: 'pointer', textAlign: 'left', '&:hover': { background: '#f5f7fa' } }}
-                        onClick={() => {
-                          setLocationInput(loc);
-                          setLocationFilter(loc);
-                          setLocationSuggestions([]);
-                        }}
-                      >
-                        {loc}
-                      </Box>
-                    ))}
-                  </Box>
-                )}
-              </Box>
-              <TextField
-                label="Min Rate ($)"
+            </div>
+            {/* Location Input */}
+            <div
+              className="location-input-pill"
+              style={{
+                background: '#fafdff',
+                borderRadius: '999px',
+                boxShadow: '0 2px 8px 0 rgba(0,0,0,0.06)',
+                width: 300,
+                height: 80,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 24px',
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Location"
+                value={locationInput}
+                onChange={e => {
+                  setLocationInput(e.target.value);
+                  setLocationFilter('');
+                }}
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 24,
+                  color: '#7b8794',
+                  width: '100%',
+                  minWidth: 0,
+                }}
+                autoComplete="off"
+              />
+            </div>
+            {/* Min Rate Input */}
+            <div
+              className="minrate-input-pill"
+              style={{
+                background: '#fafdff',
+                borderRadius: '999px',
+                boxShadow: '0 2px 8px 0 rgba(0,0,0,0.06)',
+                width: 200,
+                height: 80,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 16px',
+              }}
+            >
+              <input
                 type="number"
+                placeholder="Min"
                 value={minRate}
                 onChange={e => setMinRate(e.target.value)}
-                sx={{
-                  minWidth: 90,
-                  maxWidth: 110,
-                  flex: '0 0 90px',
-                  background: '#f7f8fa',
-                  borderRadius: 2.5,
-                  border: '1px solid #e5e7eb',
-                  boxShadow: 'none',
-                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                  '&:hover': { background: '#f1f3f6' },
-                  transition: 'background 0.2s',
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 24,
+                  color: '#7b8794',
+                  width: '100%',
+                  minWidth: 0,
                 }}
               />
-              <TextField
-                label="Max Rate ($)"
+            </div>
+            {/* Max Rate Input */}
+            <div
+              className="maxrate-input-pill"
+              style={{
+                background: '#fafdff',
+                borderRadius: '999px',
+                boxShadow: '0 2px 8px 0 rgba(0,0,0,0.06)',
+                width: 200,
+                height: 80,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 16px',
+              }}
+            >
+              <input
                 type="number"
+                placeholder="Max"
                 value={maxRate}
                 onChange={e => setMaxRate(e.target.value)}
-                sx={{
-                  minWidth: 90,
-                  maxWidth: 110,
-                  flex: '0 0 90px',
-                  background: '#f7f8fa',
-                  borderRadius: 2.5,
-                  border: '1px solid #e5e7eb',
-                  boxShadow: 'none',
-                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                  '&:hover': { background: '#f1f3f6' },
-                  transition: 'background 0.2s',
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 24,
+                  color: '#7b8794',
+                  width: '100%',
+                  minWidth: 0,
                 }}
               />
-              <TextField
-                select
-                label="Review Stars"
+            </div>
+            {/* Star Filter Dropdown */}
+            <div
+              className="starfilter-input-pill"
+              style={{
+                background: '#fafdff',
+                borderRadius: '999px',
+                boxShadow: '0 2px 8px 0 rgba(0,0,0,0.06)',
+                width: 200,
+                height: 80,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 16px',
+              }}
+            >
+              <select
                 value={starFilter}
                 onChange={e => setStarFilter(e.target.value)}
-                sx={{
-                  minWidth: 100,
-                  maxWidth: 120,
-                  flex: '0 0 100px',
-                  background: '#f7f8fa',
-                  borderRadius: 2.5,
-                  border: '1px solid #e5e7eb',
-                  boxShadow: 'none',
-                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                  '&:hover': { background: '#f1f3f6' },
-                  transition: 'background 0.2s',
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 24,
+                  color: '#7b8794',
+                  width: '100%',
+                  minWidth: 0,
+                  appearance: 'none',
                 }}
               >
-                <MenuItem value="">All Ratings</MenuItem>
+                <option value="">&#9733;</option>
                 {uniqueRatings.map(r => (
-                  <MenuItem key={r} value={r}>{r}+</MenuItem>
+                  <option key={r} value={r}>{r}+</option>
                 ))}
-              </TextField>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                size="large"
-                sx={{
-                  borderRadius: 2.5,
-                  px: 4,
-                  fontWeight: 600,
-                  boxShadow: 'none',
-                  textTransform: 'none',
-                  height: 48,
-                  background: '#2563eb',
-                  '&:hover': { background: '#1746a0' },
-                  fontSize: 17,
-                  minWidth: 120,
-                  flex: '0 0 120px',
-                }}
-                endIcon={<SearchIcon />}
-              >
-                Search
-              </Button>
-            </form>
-            {searchSuggestions.length > 0 && searchQuery && (
-              <Box sx={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e1e1e1', borderRadius: 2, mt: 1, boxShadow: 3, zIndex: 1000 }}>
-                {searchSuggestions.map((suggestion, index) => (
-                  <Box
-                    key={index}
-                    sx={{ p: 1.2, cursor: 'pointer', textAlign: 'left', '&:hover': { background: '#f5f7fa' } }}
-                    onClick={() => {
-                      setSearchQuery(suggestion);
-                      handleSearch();
-                      setSearchSuggestions([]);
-                      setSearchQuery('');
-                    }}
-                  >
-                    {suggestion}
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Box>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="professionals-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          justifyContent: 'center',
           gap: '40px',
-          maxWidth: 900,
+          maxWidth: 1400,
           margin: '0 auto',
         }}>
-          {filteredMockFreelancers.concat(filteredDbFreelancers).length > 0 ? (
-            filteredMockFreelancers.concat(filteredDbFreelancers).map(f => renderFreelancerCard(f))
+          {filteredFreelancers.length > 0 ? (
+            filteredFreelancers.map(f => renderFreelancerCard(f))
           ) : (
             <div className="no-results">
               <h3>No professionals found matching your search criteria</h3>
@@ -1060,9 +1211,139 @@ const Professionals: React.FC = () => {
 
         {renderBookingModal()}
         {renderThankYouModal()}
+
+        {/* Message Modal */}
+        <Modal
+          open={showMessageModal}
+          onClose={() => {
+            setShowMessageModal(false);
+            setInitialMessage('');
+            setSelectedFreelancer(null);
+          }}
+          aria-labelledby="message-modal-title"
+        >
+          <Box className="message-modal" sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 600,
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            bgcolor: 'background.paper',
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Avatar
+                src={selectedFreelancer?.avatar_url || '/default-avatar.png'}
+                sx={{ width: 64, height: 64, mr: 3 }}
+              />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h5" component="h2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Message {selectedFreelancer?.full_name}
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  {selectedFreelancer?.professional_title}
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={() => {
+                  setShowMessageModal(false);
+                  setInitialMessage('');
+                  setSelectedFreelancer(null);
+                }}
+                sx={{ position: 'absolute', right: 16, top: 16 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <form onSubmit={handleSendInitialMessage} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <TextField
+                fullWidth
+                multiline
+                rows={6}
+                placeholder="Type your message..."
+                value={initialMessage}
+                onChange={(e) => setInitialMessage(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: '1.1rem',
+                    padding: 2,
+                    '& textarea': {
+                      padding: 2
+                    }
+                  }
+                }}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={!initialMessage.trim()}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2
+                }}
+              >
+                Send Message
+              </Button>
+            </form>
+          </Box>
+        </Modal>
       </div>
     </div>
   );
 };
 
-export default Professionals; 
+export default Professionals;
+
+/* Add responsive CSS at the end of the file */
+<style>
+{`
+@media (max-width: 768px) {
+  .search-filter-bar-responsive {
+    flex-direction: column !important;
+    gap: 16px !important;
+    align-items: stretch !important;
+    padding: 0 8px !important;
+  }
+  .search-icon-pill,
+  .search-input-pill,
+  .location-input-pill,
+  .minrate-input-pill,
+  .maxrate-input-pill,
+  .starfilter-input-pill {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 56px !important;
+    padding: 0 12px !important;
+    margin: 0 auto 0 auto !important;
+    font-size: 18px !important;
+  }
+  .professionals-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 100vw !important;
+    gap: 20px !important;
+    padding: 0 4px !important;
+  }
+  .freelancer-card,
+  .company-card {
+    width: 100% !important;
+    max-width: 98vw !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    height: auto !important;
+    padding: 12px !important;
+  }
+}
+`}
+</style> 

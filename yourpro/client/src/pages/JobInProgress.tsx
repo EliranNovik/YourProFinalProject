@@ -21,6 +21,7 @@ import SendIcon from '@mui/icons-material/Send';
 import { useLocation, useParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import styles from './JobInProgress.module.css';
+import MessageModal from '../components/MessageModal';
 
 interface TimelineStep {
   label: string;
@@ -53,6 +54,13 @@ const JobInProgress: React.FC = () => {
   ]);
   const [newMessage, setNewMessage] = useState('');
   const [jobDetails, setJobDetails] = useState<any>(null);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{
+    id: string;
+    full_name: string;
+    professional_title?: string;
+    avatar_url?: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -155,6 +163,22 @@ const JobInProgress: React.FC = () => {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleMessage = async (userId: string, userName: string, userTitle?: string, userAvatar?: string) => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      alert('You must be logged in to send a message.');
+      return;
+    }
+
+    setSelectedUser({
+      id: userId,
+      full_name: userName,
+      professional_title: userTitle,
+      avatar_url: userAvatar
+    });
+    setShowMessageModal(true);
   };
 
   if (!freelancer || !aiReport) {
@@ -337,7 +361,7 @@ const JobInProgress: React.FC = () => {
                 sx={{ justifyContent: 'flex-start', bgcolor: '#eaf1fb', color: '#2563eb', borderRadius: 0, borderTopLeftRadius: '18px', borderTopRightRadius: '18px', p: 3, fontWeight: 700, fontSize: 17, textTransform: 'none', gap: 2 }} 
                 startIcon={<ChatBubbleOutlineIcon sx={{ color: '#2563eb', fontSize: 24 }} />} 
                 endIcon={<span style={{ marginLeft: 'auto', color: '#2563eb', fontSize: 22 }}>→</span>}
-                onClick={() => setIsChatOpen(true)}
+                onClick={() => handleMessage(freelancer.id, freelancer.full_name, freelancer.professional_title, freelancer.avatar_url)}
               >
                 Message <Typography color="#6b7280" fontWeight={500} fontSize={15} ml={2}>Real-time chat</Typography>
               </Button>
@@ -484,6 +508,18 @@ const JobInProgress: React.FC = () => {
           </Box>
         </DialogContent>
       </Dialog>
+
+      {/* Add MessageModal */}
+      {selectedUser && (
+        <MessageModal
+          open={showMessageModal}
+          onClose={() => {
+            setShowMessageModal(false);
+            setSelectedUser(null);
+          }}
+          recipient={selectedUser}
+        />
+      )}
     </Box>
   );
 };

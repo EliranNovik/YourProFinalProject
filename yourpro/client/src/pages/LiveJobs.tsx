@@ -11,6 +11,9 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import jobInProgressStyles from './JobInProgress.module.css';
 import LiveJobsRightPanelStyles from './LiveJobsRightPanel.module.css';
+import MessageModal from '../components/MessageModal';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import { Button } from '@mui/material';
 
 const stepLabels = [
   'Arrive & Confirm',
@@ -51,6 +54,13 @@ const LiveJobs: React.FC = () => {
   const [clientProfile, setClientProfile] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{
+    id: string;
+    full_name: string;
+    professional_title?: string;
+    avatar_url?: string;
+  } | null>(null);
 
   // Fetch current user (freelancer) and all jobs
   useEffect(() => {
@@ -191,6 +201,22 @@ const LiveJobs: React.FC = () => {
     );
   });
 
+  const handleMessage = async (userId: string, userName: string, userTitle?: string, userAvatar?: string) => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      alert('You must be logged in to send a message.');
+      return;
+    }
+
+    setSelectedUser({
+      id: userId,
+      full_name: userName,
+      professional_title: userTitle,
+      avatar_url: userAvatar
+    });
+    setShowMessageModal(true);
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', height: '100vh' }}>
       {/* Sidebar flush to the left edge, scrollable */}
@@ -304,6 +330,20 @@ const LiveJobs: React.FC = () => {
             <div className="progress-bar-bg">
               <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
             </div>
+            <div className="job-actions">
+              <Button
+                variant="outlined"
+                startIcon={<ChatBubbleOutlineIcon />}
+                onClick={() => handleMessage(
+                  jobData.freelancer_id,
+                  jobData.freelancer_name,
+                  jobData.freelancer_title,
+                  jobData.freelancer_avatar
+                )}
+              >
+                Message
+              </Button>
+            </div>
           </div>
 
           <div className="steps-list">
@@ -372,18 +412,16 @@ const LiveJobs: React.FC = () => {
           )}
           {/* Simulated Add Note Dialog */}
           {showNoteInput.open && showNoteInput.idx !== null && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h3>Add Note</h3>
-                <textarea value={noteInput} onChange={e => setNoteInput(e.target.value)} placeholder="Type your note here..." />
-                <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
-                  <button onClick={async () => {
-                    await handleAddNote(showNoteInput.idx!, noteInput);
-                    setShowNoteInput({ open: false, idx: null });
-                    setNoteInput('');
-                  }}>Save Note</button>
-                  <button className="close-btn" onClick={() => setShowNoteInput({ open: false, idx: null })}>Close</button>
-                </div>
+            <div className="modal-content">
+              <h3>Add Note</h3>
+              <textarea value={noteInput} onChange={e => setNoteInput(e.target.value)} placeholder="Type your note here..." />
+              <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
+                <button onClick={async () => {
+                  await handleAddNote(showNoteInput.idx!, noteInput);
+                  setShowNoteInput({ open: false, idx: null });
+                  setNoteInput('');
+                }}>Save Note</button>
+                <button className="close-btn" onClick={() => setShowNoteInput({ open: false, idx: null })}>Close</button>
               </div>
             </div>
           )}
@@ -436,6 +474,17 @@ const LiveJobs: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Add MessageModal */}
+      {selectedUser && (
+        <MessageModal
+          open={showMessageModal}
+          onClose={() => {
+            setShowMessageModal(false);
+            setSelectedUser(null);
+          }}
+          recipient={selectedUser}
+        />
+      )}
     </div>
   );
 };
